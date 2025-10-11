@@ -484,7 +484,8 @@
             if (!db || !currentTable) return;
 
             try {
-                const result = db.exec(`SELECT * FROM ${currentTable}`);
+                // LIMIT을 사용하여 한 번에 로드할 행 수 제한
+                const result = db.exec(`SELECT * FROM ${currentTable} LIMIT 1000`);
                 const container = document.getElementById('tableContainer');
                 
                 if (result.length === 0) {
@@ -494,30 +495,88 @@
 
                 const columns = result[0].columns;
                 const values = result[0].values;
-                currentData = values.map(row => [...row]);
+                
+                // 데이터 복사를 더 안전하게
+                currentData = [];
+                for (let i = 0; i < values.length; i++) {
+                    currentData.push([...values[i]]);
+                }
 
-                let html = '<table><thead><tr>';
-                html += '<th style="width: 50px;">선택</th>';
+                // DOM을 한 번에 생성하지 않고 분할하여 생성
+                const table = document.createElement('table');
+                const thead = document.createElement('thead');
+                const tbody = document.createElement('tbody');
+                
+                // 헤더 생성
+                const headerRow = document.createElement('tr');
+                const checkboxTh = document.createElement('th');
+                checkboxTh.style.width = '50px';
+                checkboxTh.textContent = '선택';
+                headerRow.appendChild(checkboxTh);
+                
                 columns.forEach(col => {
-                    html += `<th>${col}</th>`;
+                    const th = document.createElement('th');
+                    th.textContent = col;
+                    headerRow.appendChild(th);
                 });
-                html += '</tr></thead><tbody>';
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
 
-                values.forEach((row, rowIndex) => {
-                    html += '<tr>';
-                    html += `<td><input type="checkbox" onchange="selectRowCheckbox(${rowIndex}, this)"></td>`;
-                    row.forEach((cell, colIndex) => {
-                        const cellValue = cell === null ? '' : String(cell);
-                        html += `<td onclick="handleCellClick(${rowIndex}, ${colIndex}, '${columns[colIndex]}')" title="${cellValue}">${cellValue}</td>`;
-                    });
-                    html += '</tr>';
-                });
+                // 바디 생성 (청크로 나누어 처리)
+                const chunkSize = 100;
+                let currentIndex = 0;
 
-                html += '</tbody></table>';
-                container.innerHTML = html;
+                function renderChunk() {
+                    const end = Math.min(currentIndex + chunkSize, values.length);
+                    
+                    for (let rowIndex = currentIndex; rowIndex < end; rowIndex++) {
+                        const tr = document.createElement('tr');
+                        
+                        // 체크박스 셀
+                        const checkboxTd = document.createElement('td');
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.onchange = function() { selectRowCheckbox(rowIndex, this); };
+                        checkboxTd.appendChild(checkbox);
+                        tr.appendChild(checkboxTd);
+                        
+                        // 데이터 셀
+                        values[rowIndex].forEach((cell, colIndex) => {
+                            const td = document.createElement('td');
+                            const cellValue = cell === null ? '' : String(cell);
+                            td.textContent = cellValue;
+                            td.title = cellValue;
+                            td.onclick = function() { 
+                                handleCellClick(rowIndex, colIndex, columns[colIndex], this); 
+                            };
+                            tr.appendChild(td);
+                        });
+                        
+                        tbody.appendChild(tr);
+                    }
+                    
+                    currentIndex = end;
+                    
+                    if (currentIndex < values.length) {
+                        // 다음 청크를 비동기로 처리
+                        setTimeout(renderChunk, 0);
+                    } else {
+                        // 모든 행 렌더링 완료
+                        table.appendChild(tbody);
+                        container.innerHTML = '';
+                        container.appendChild(table);
+                    }
+                }
+
+                // 첫 청크 렌더링 시작
+                renderChunk();
 
                 document.getElementById('tableInfo').textContent = 
                     `테이블: ${currentTable} (행: ${values.length}, 열: ${columns.length})`;
+                    
+                if (values.length >= 1000) {
+                    showNotification('처음 1000개 행만 표시됩니다');
+                }
             } catch (error) {
                 alert('테이블 데이터를 로드하는데 실패했습니다: ' + error.message);
             }
