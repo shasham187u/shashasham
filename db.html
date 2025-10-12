@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SQLite DB 편집기 1</title>
+    <title>SQLite DB 편집기</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
     <style>
         * {
@@ -18,6 +18,7 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
         
         .header {
@@ -316,7 +317,7 @@
         .sql-query {
             padding: 15px 20px;
             background: white;
-            border-bottom: 1px solid #ddd;
+            border-top: 1px solid #ddd;
         }
         
         .sql-query textarea {
@@ -342,7 +343,7 @@
     </div>
     
     <div class="controls">
-        <input type="file" id="fileInput" accept=".db,.sqlite,.sqlite3">
+        <button onclick="openFileWithAPI()" class="success">DB 파일 열기</button>
         <button onclick="saveDatabase()" class="success">DB 저장</button>
     </div>
     
@@ -425,37 +426,52 @@
             }
         }
 
-        document.getElementById('fileInput').addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+        async function openFileWithAPI() {
+            if (!('showOpenFilePicker' in window)) {
+                showToast('이 브라우저는 File System Access API를 지원하지 않습니다.');
+                return;
+            }
 
             try {
-                const reader = new FileReader();
-                reader.onload = async function(event) {
-                    try {
-                        const arrayBuffer = event.target.result;
-                        if (!SQL) {
-                            await loadSqlJs();
-                        }
-                        db = new SQL.Database(new Uint8Array(arrayBuffer));
-
-                        document.getElementById('fileInfo').textContent = `열린 파일: ${file.name}`;
-                        loadTables();
-                        showToast('DB 파일을 성공적으로 열었습니다.');
-                    } catch (error) {
-                        showToast('DB 파일 로드 실패: ' + error.message);
-                        console.error(error);
-                    }
-                };
-                reader.onerror = function() {
-                    showToast('파일 읽기 실패');
-                };
-                reader.readAsArrayBuffer(file);
+                const [handle] = await window.showOpenFilePicker({
+                    types: [{
+                        description: 'SQLite Database',
+                        accept: { 'application/x-sqlite3': ['.db', '.sqlite', '.sqlite3'] }
+                    }],
+                    multiple: false
+                });
+                
+                fileHandle = handle;
+                const file = await handle.getFile();
+                originalFileName = file.name;
+                
+                const arrayBuffer = await file.arrayBuffer();
+                await loadDatabase(arrayBuffer, file.name);
+                
+                showToast('파일을 열었습니다. 저장 시 원본 파일이 덮어씌워집니다!');
             } catch (error) {
-                showToast('파일 처리 실패: ' + error.message);
+                if (error.name !== 'AbortError') {
+                    showToast('파일 열기 실패: ' + error.message);
+                    console.error(error);
+                }
+            }
+        }
+
+        async function loadDatabase(arrayBuffer, fileName) {
+            try {
+                if (!SQL) {
+                    await loadSqlJs();
+                }
+                db = new SQL.Database(new Uint8Array(arrayBuffer));
+
+                document.getElementById('fileInfo').textContent = `열린 파일: ${fileName}`;
+                loadTables();
+                showToast('DB 파일을 성공적으로 열었습니다.');
+            } catch (error) {
+                showToast('DB 파일 로드 실패: ' + error.message);
                 console.error(error);
             }
-        });
+        }
 
         function loadTables() {
             if (!db) return;
@@ -647,20 +663,42 @@
                 });
                 stmt.free();
 
-                // DB를 파일로 저장
                 const data = db.export();
-                const blob = new Blob([data], { type: 'application/x-sqlite3' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'database.db';
-                a.click();
-                URL.revokeObjectURL(url);
-
-                showToast('DB가 저장되었습니다.');
+                
+                // File System Access API로 원본 덮어쓰기 시도
+                if (fileHandle) {
+                    saveWithFileHandle(data);
+                } else {
+                    // 일반 다운로드 방식
+                    downloadFile(data);
+                }
             } catch (error) {
                 showToast('저장 실패: ' + error.message);
             }
+        }
+
+        async function saveWithFileHandle(data) {
+            try {
+                const writable = await fileHandle.createWritable();
+                await writable.write(data);
+                await writable.close();
+                showToast('원본 파일이 성공적으로 저장되었습니다! ✓');
+            } catch (error) {
+                console.error('파일 쓰기 실패:', error);
+                showToast('원본 파일 저장 실패. 다운로드 방식으로 저장합니다.');
+                downloadFile(data);
+            }
+        }
+
+        function downloadFile(data) {
+            const blob = new Blob([data], { type: 'application/x-sqlite3' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = originalFileName || 'database.db';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('DB가 다운로드되었습니다.');
         }
 
         function executeQuery() {
