@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SQLite DB 편집기 1</title>
+    <title>SQLite DB 편집기</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
     <style>
         * {
@@ -46,6 +46,7 @@
             gap: 10px;
             flex-wrap: wrap;
             align-items: center;
+            flex-shrink: 0;
         }
         
         button {
@@ -157,12 +158,14 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            min-height: 0;
         }
         
         .table-header {
             padding: 15px 20px;
             background: white;
             border-bottom: 1px solid #ddd;
+            flex-shrink: 0;
         }
         
         .table-header h2 {
@@ -329,8 +332,8 @@
             border-radius: 4px;
             font-family: monospace;
             font-size: 13px;
-            resize: vertical;
-            min-height: 80px;
+            resize: none;
+            height: 60px;
         }
         
         .sql-query button {
