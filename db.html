@@ -348,28 +348,6 @@
             }
         }
         
-        .sql-query {
-            padding: 10px 20px;
-            background: white;
-            border-top: 1px solid #ddd;
-            flex-shrink: 0;
-        }
-        
-        .sql-query textarea {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 13px;
-            resize: none;
-            height: 50px;
-        }
-        
-        .sql-query button {
-            margin-top: 5px;
-        }
-        
         .search-sort-panel {
             padding: 10px 20px;
             background: #f8f9fa;
@@ -501,11 +479,6 @@
                     <thead id="tableHead"></thead>
                     <tbody id="tableBody"></tbody>
                 </table>
-            </div>
-            
-            <div class="sql-query">
-                <textarea id="sqlQuery" placeholder="SELECT * FROM table_name"></textarea>
-                <button onclick="executeQuery()">쿼리 실행</button>
             </div>
         </div>
     </div>
@@ -919,43 +892,6 @@
             a.click();
             URL.revokeObjectURL(url);
             showToast('DB가 다운로드되었습니다.');
-        }
-
-        function executeQuery() {
-            if (!db) {
-                showToast('DB 파일을 먼저 열어주세요.');
-                return;
-            }
-
-            const query = document.getElementById('sqlQuery').value.trim();
-            if (!query) {
-                showToast('쿼리를 입력하세요.');
-                return;
-            }
-
-            try {
-                const result = db.exec(query);
-                
-                if (result.length > 0) {
-                    currentColumns = result[0].columns;
-                    currentData = result[0].values;
-                    filteredData = [...currentData];
-                    currentTable = '쿼리 결과';
-                    
-                    document.getElementById('tableName').textContent = '쿼리 결과';
-                    document.getElementById('tableInfo').textContent = 
-                        `${currentData.length}개의 행이 조회되었습니다`;
-                    
-                    updateSortOptions();
-                    renderTable();
-                    showToast('쿼리가 실행되었습니다.');
-                } else {
-                    showToast('쿼리가 실행되었습니다. (결과 없음)');
-                    loadTables();
-                }
-            } catch (error) {
-                showToast('쿼리 실행 실패: ' + error.message);
-            }
         }
 
         function openLink() {
