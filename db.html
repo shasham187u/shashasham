@@ -15,7 +15,7 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
             background: #f5f5f5;
-            height: 100svh;
+            height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -79,13 +79,6 @@
         
         button.success:hover {
             background: #229954;
-        }
-        
-        input[type="file"] {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
         }
         
         .main-container {
@@ -208,6 +201,34 @@
             font-weight: 600;
         }
         
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding-right: 25px;
+        }
+        
+        th.sortable:hover {
+            background: #2c3e50;
+        }
+        
+        th.sortable::after {
+            content: '⇅';
+            position: absolute;
+            right: 8px;
+            opacity: 0.3;
+        }
+        
+        th.sortable.asc::after {
+            content: '↑';
+            opacity: 1;
+        }
+        
+        th.sortable.desc::after {
+            content: '↓';
+            opacity: 1;
+        }
+        
         td {
             cursor: pointer;
             max-width: 500px;
@@ -218,6 +239,11 @@
         
         td:hover {
             background: #f8f9fa;
+        }
+        
+        .highlight {
+            background-color: #fff176 !important;
+            font-weight: bold;
         }
         
         .empty-state {
@@ -289,10 +315,6 @@
             justify-content: flex-end;
         }
         
-        .browser-modal {
-            display: none;
-        }
-        
         .toast {
             position: fixed;
             bottom: 20px;
@@ -322,7 +344,7 @@
         }
         
         .sql-query {
-            padding: 8px 20px;
+            padding: 10px 20px;
             background: white;
             border-top: 1px solid #ddd;
             flex-shrink: 0;
@@ -330,19 +352,87 @@
         
         .sql-query textarea {
             width: 100%;
-            padding: 6px;
+            padding: 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-family: monospace;
-            font-size: 12px;
+            font-size: 13px;
             resize: none;
-            height: 40px;
+            height: 50px;
         }
         
         .sql-query button {
-            margin-top: 4px;
-            padding: 6px 12px;
-            font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        .search-sort-panel {
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 8px 35px 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .search-box .clear-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #7f8c8d;
+            cursor: pointer;
+            padding: 4px 8px;
+            font-size: 16px;
+        }
+        
+        .search-box .clear-btn:hover {
+            color: #2c3e50;
+            background: none;
+        }
+        
+        .sort-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .sort-controls select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+        }
+        
+        .sort-controls button {
+            padding: 8px 12px;
+        }
+        
+        .search-info {
+            font-size: 13px;
+            color: #7f8c8d;
+            white-space: nowrap;
+        }
+
+        input[type="file"] {
+            display: none;
         }
     </style>
 </head>
@@ -353,7 +443,9 @@
     </div>
     
     <div class="controls">
-        <button onclick="openFileWithAPI()" class="success">DB 파일 열기</button>
+        <input type="file" id="fileInput" accept=".db,.sqlite,.sqlite3">
+        <button onclick="document.getElementById('fileInput').click()" class="success">DB 파일 열기</button>
+        <button onclick="reloadFile()" class="success">파일 다시 불러오기</button>
         <button onclick="saveDatabase()" class="success">DB 저장</button>
     </div>
     
@@ -374,10 +466,25 @@
                 <div class="table-info" id="tableInfo"></div>
             </div>
             
-            <div class="controls" style="border-top: 1px solid #ddd; border-bottom: 1px solid #ddd;">
+            <div class="controls" style="border-top: 1px solid #ddd; border-bottom: none;">
                 <button onclick="addRow()">새 행 추가</button>
                 <button onclick="deleteRow()" class="danger">선택 행 삭제</button>
                 <button onclick="refreshTable()">새로고침</button>
+            </div>
+            
+            <div class="search-sort-panel">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="검색어 입력..." oninput="searchTable()">
+                    <button class="clear-btn" onclick="clearSearch()">×</button>
+                </div>
+                <div class="sort-controls">
+                    <select id="sortColumn">
+                        <option value="">정렬 열 선택</option>
+                    </select>
+                    <button onclick="sortTable('asc')">↑ 오름차순</button>
+                    <button onclick="sortTable('desc')">↓ 내림차순</button>
+                </div>
+                <div class="search-info" id="searchInfo"></div>
             </div>
             
             <div class="table-container">
@@ -420,8 +527,11 @@
         let editingCell = null;
         let selectedRow = null;
         let SQL = null;
-        let fileHandle = null;  // 파일 핸들 저장
+        let fileHandle = null;
         let originalFileName = null;
+        let filteredData = [];
+        let currentSort = { column: null, direction: null };
+        let currentFile = null;  // 현재 파일 객체 저장
 
         async function loadSqlJs() {
             try {
@@ -436,34 +546,26 @@
             }
         }
 
-        async function openFileWithAPI() {
-            if (!('showOpenFilePicker' in window)) {
-                showToast('이 브라우저는 File System Access API를 지원하지 않습니다.');
+        document.getElementById('fileInput').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            currentFile = file;  // 파일 저장
+            originalFileName = file.name;
+            const arrayBuffer = await file.arrayBuffer();
+            await loadDatabase(arrayBuffer, file.name);
+        });
+
+        async function reloadFile() {
+            if (!currentFile) {
+                showToast('먼저 파일을 열어주세요.');
                 return;
             }
-
-            try {
-                const [handle] = await window.showOpenFilePicker({
-                    types: [{
-                        description: 'SQLite Database',
-                        accept: { 'application/x-sqlite3': ['.db', '.sqlite', '.sqlite3'] }
-                    }],
-                    multiple: false
-                });
-                
-                fileHandle = handle;
-                const file = await handle.getFile();
-                originalFileName = file.name;
-                
-                const arrayBuffer = await file.arrayBuffer();
-                await loadDatabase(arrayBuffer, file.name);
-                
-                showToast('파일을 열었습니다. 저장 시 원본 파일이 덮어씌워집니다!');
-            } catch (error) {
-                if (error.name !== 'AbortError') {
-                    showToast('파일 열기 실패: ' + error.message);
-                    console.error(error);
-                }
+            
+            if (confirm('파일을 다시 불러오면 저장하지 않은 모든 변경사항이 사라집니다. 계속하시겠습니까?')) {
+                const arrayBuffer = await currentFile.arrayBuffer();
+                await loadDatabase(arrayBuffer, currentFile.name);
+                showToast('파일을 다시 불러왔습니다.');
             }
         }
 
@@ -526,20 +628,102 @@
                 if (result.length > 0) {
                     currentColumns = result[0].columns;
                     currentData = result[0].values;
+                    filteredData = [...currentData];
 
                     document.getElementById('tableInfo').textContent = 
                         `행: ${currentData.length}, 열: ${currentColumns.length}`;
 
+                    updateSortOptions();
+                    document.getElementById('searchInput').value = '';
+                    document.getElementById('searchInfo').textContent = '';
+                    
                     renderTable();
                 } else {
                     currentColumns = [];
                     currentData = [];
+                    filteredData = [];
                     document.getElementById('tableInfo').textContent = '데이터가 없습니다';
                     renderTable();
                 }
             } catch (error) {
                 showToast('테이블을 불러오는데 실패했습니다: ' + error.message);
             }
+        }
+
+        function updateSortOptions() {
+            const select = document.getElementById('sortColumn');
+            select.innerHTML = '<option value="">정렬 열 선택</option>';
+            
+            currentColumns.forEach((col, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = col;
+                select.appendChild(option);
+            });
+        }
+
+        function searchTable() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            if (!searchTerm) {
+                filteredData = [...currentData];
+                document.getElementById('searchInfo').textContent = '';
+            } else {
+                filteredData = currentData.filter(row => {
+                    return row.some(cell => {
+                        if (cell === null) return false;
+                        return String(cell).toLowerCase().includes(searchTerm);
+                    });
+                });
+                
+                document.getElementById('searchInfo').textContent = 
+                    `${filteredData.length}개 행 검색됨 (전체 ${currentData.length}개 중)`;
+            }
+            
+            renderTable();
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            searchTable();
+        }
+
+        function sortTable(direction) {
+            const columnIndex = parseInt(document.getElementById('sortColumn').value);
+            
+            if (isNaN(columnIndex)) {
+                showToast('정렬할 열을 선택하세요.');
+                return;
+            }
+            
+            sortTableByColumn(columnIndex, direction);
+        }
+
+        function sortTableByColumn(columnIndex, direction) {
+            currentSort = { column: columnIndex, direction: direction };
+            
+            filteredData.sort((a, b) => {
+                let aVal = a[columnIndex];
+                let bVal = b[columnIndex];
+                
+                if (aVal === null) aVal = '';
+                if (bVal === null) bVal = '';
+                
+                const aNum = Number(aVal);
+                const bNum = Number(bVal);
+                
+                if (!isNaN(aNum) && !isNaN(bNum) && String(aVal).trim() !== '' && String(bVal).trim() !== '') {
+                    return direction === 'asc' ? aNum - bNum : bNum - aNum;
+                }
+                
+                const comparison = String(aVal).localeCompare(String(bVal));
+                return direction === 'asc' ? comparison : -comparison;
+            });
+            
+            document.getElementById('sortColumn').value = columnIndex;
+            
+            renderTable();
+            showToast(`${currentColumns[columnIndex]} 열로 ${direction === 'asc' ? '오름차순' : '내림차순'} 정렬됨`);
         }
 
         function renderTable() {
@@ -553,22 +737,39 @@
                 return;
             }
 
-            // 헤더 생성
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
             const headerRow = document.createElement('tr');
             headerRow.innerHTML = '<th style="width: 50px;">#</th>';
-            currentColumns.forEach(col => {
+            currentColumns.forEach((col, index) => {
                 const th = document.createElement('th');
                 th.textContent = col;
+                th.classList.add('sortable');
+                
+                if (currentSort.column === index) {
+                    th.classList.add(currentSort.direction);
+                }
+                
+                th.onclick = () => {
+                    if (currentSort.column === index && currentSort.direction === 'asc') {
+                        sortTableByColumn(index, 'desc');
+                    } else {
+                        sortTableByColumn(index, 'asc');
+                    }
+                };
+                
                 headerRow.appendChild(th);
             });
             thead.appendChild(headerRow);
 
-            // 데이터 행 생성
-            currentData.forEach((row, rowIndex) => {
+            filteredData.forEach((row, rowIndex) => {
                 const tr = document.createElement('tr');
+                
+                const originalIndex = currentData.indexOf(row);
+                
                 tr.onclick = (e) => {
                     if (e.target.tagName === 'TD') {
-                        selectedRow = rowIndex;
+                        selectedRow = originalIndex;
                         document.querySelectorAll('#tableBody tr').forEach(r => r.style.background = '');
                         tr.style.background = '#e3f2fd';
                     }
@@ -582,13 +783,19 @@
 
                 row.forEach((cell, colIndex) => {
                     const td = document.createElement('td');
-                    td.textContent = cell !== null ? cell : '';
-                    td.title = cell !== null ? cell : '';
+                    const cellText = cell !== null ? String(cell) : '';
+                    td.textContent = cellText;
+                    td.title = cellText;
+                    
+                    if (searchTerm && cellText.toLowerCase().includes(searchTerm)) {
+                        td.classList.add('highlight');
+                    }
+                    
                     td.onclick = () => {
                         copyToClipboard(cell);
                         showToast(`복사됨: ${String(cell).substring(0, 50)}${String(cell).length > 50 ? '...' : ''}`);
                     };
-                    td.ondblclick = () => openEditModal(rowIndex, colIndex);
+                    td.ondblclick = () => openEditModal(originalIndex, colIndex);
                     tr.appendChild(td);
                 });
 
@@ -617,7 +824,7 @@
             const newValue = document.getElementById('editValue').value;
             currentData[editingCell.row][editingCell.col] = newValue;
             
-            renderTable();
+            searchTable();
             closeEditModal();
             showToast('셀이 수정되었습니다. "DB 저장" 버튼을 눌러 저장하세요.');
         }
@@ -630,6 +837,12 @@
 
             const newRow = currentColumns.map(() => '');
             currentData.push(newRow);
+            
+            filteredData = [...currentData];
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchInfo').textContent = '';
+            currentSort = { column: null, direction: null };
+            
             renderTable();
             showToast('새 행이 추가되었습니다.');
         }
@@ -643,14 +856,26 @@
             if (confirm('선택한 행을 삭제하시겠습니까?')) {
                 currentData.splice(selectedRow, 1);
                 selectedRow = null;
+                filteredData = [...currentData];
+                
+                // 테이블 정보 업데이트
+                document.getElementById('tableInfo').textContent = 
+                    `행: ${currentData.length}, 열: ${currentColumns.length}`;
+                
                 renderTable();
-                showToast('행이 삭제되었습니다.');
+                showToast('행이 삭제되었습니다. 번호가 재정렬되었습니다.');
             }
         }
 
         function refreshTable() {
+            if (!db || !currentTable) {
+                showToast('먼저 테이블을 선택하세요.');
+                return;
+            }
+            
+            // DB에서 현재 테이블 데이터를 다시 읽어옴
             loadTableData();
-            showToast('테이블을 새로고침했습니다.');
+            showToast('테이블을 새로고침했습니다. (저장하지 않은 변경사항은 취소됨)');
         }
 
         function saveDatabase() {
@@ -660,7 +885,6 @@
             }
 
             try {
-                // 현재 테이블의 데이터를 DB에 반영
                 db.run(`DELETE FROM ${currentTable}`);
                 
                 const placeholders = currentColumns.map(() => '?').join(',');
@@ -674,29 +898,10 @@
                 stmt.free();
 
                 const data = db.export();
-                
-                // File System Access API로 원본 덮어쓰기 시도
-                if (fileHandle) {
-                    saveWithFileHandle(data);
-                } else {
-                    // 일반 다운로드 방식
-                    downloadFile(data);
-                }
+                downloadFile(data);
             } catch (error) {
                 showToast('저장 실패: ' + error.message);
-            }
-        }
-
-        async function saveWithFileHandle(data) {
-            try {
-                const writable = await fileHandle.createWritable();
-                await writable.write(data);
-                await writable.close();
-                showToast('원본 파일이 성공적으로 저장되었습니다! ✓');
-            } catch (error) {
-                console.error('파일 쓰기 실패:', error);
-                showToast('원본 파일 저장 실패. 다운로드 방식으로 저장합니다.');
-                downloadFile(data);
+                console.error(error);
             }
         }
 
@@ -729,12 +934,14 @@
                 if (result.length > 0) {
                     currentColumns = result[0].columns;
                     currentData = result[0].values;
+                    filteredData = [...currentData];
                     currentTable = '쿼리 결과';
                     
                     document.getElementById('tableName').textContent = '쿼리 결과';
                     document.getElementById('tableInfo').textContent = 
                         `${currentData.length}개의 행이 조회되었습니다`;
                     
+                    updateSortOptions();
                     renderTable();
                     showToast('쿼리가 실행되었습니다.');
                 } else {
@@ -766,7 +973,6 @@
                     url = url.replace(`{${col}}`, row[index]);
                 });
 
-                // 새 탭으로 열기
                 window.open(url, '_blank');
                 
                 copyToClipboard(url);
@@ -774,11 +980,6 @@
             } catch (error) {
                 showToast('링크 열기 실패: ' + error.message);
             }
-        }
-        
-        function closeBrowser() {
-            document.getElementById('browserPanel').classList.add('hidden');
-            document.getElementById('browserFrame').src = '';
         }
 
         function copyToClipboard(text) {
@@ -801,14 +1002,12 @@
             }, 3000);
         }
 
-        // 모달 외부 클릭시 닫기
         document.getElementById('editModal').addEventListener('click', (e) => {
             if (e.target.id === 'editModal') {
                 closeEditModal();
             }
         });
 
-        // Ctrl+Enter로 모달 저장
         document.getElementById('editValue').addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.key === 'Enter') {
                 saveEdit();
