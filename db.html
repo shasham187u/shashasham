@@ -833,6 +833,21 @@
 
             if (confirm('선택한 행을 삭제하시겠습니까?')) {
                 currentData.splice(selectedRow, 1);
+                
+                // num 컬럼이 있으면 자동으로 재정렬
+                const numColumnIndex = currentColumns.findIndex(col => 
+                    col.toLowerCase() === 'num' || col.toLowerCase() === 'no' || col.toLowerCase() === 'number'
+                );
+                
+                if (numColumnIndex !== -1) {
+                    currentData.forEach((row, index) => {
+                        row[numColumnIndex] = index + 1;
+                    });
+                    showToast('행이 삭제되고 번호가 재정렬되었습니다. "DB 저장"을 눌러 저장하세요.');
+                } else {
+                    showToast('행이 삭제되었습니다. "DB 저장"을 눌러 저장하세요.');
+                }
+                
                 selectedRow = null;
                 filteredData = [...currentData];
                 
@@ -841,7 +856,6 @@
                     `행: ${currentData.length}, 열: ${currentColumns.length}`;
                 
                 renderTable();
-                showToast('행이 삭제되었습니다. 번호가 재정렬되었습니다.');
             }
         }
 
