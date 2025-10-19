@@ -348,6 +348,10 @@
             }
         }
         
+        input[type="file"] {
+            display: none;
+        }
+        
         .search-sort-panel {
             padding: 10px 20px;
             background: #f8f9fa;
@@ -426,8 +430,7 @@
     </div>
     
     <div class="controls">
-        <input type="file" id="fileInput" accept=".db,.sqlite,.sqlite3">
-        <button onclick="document.getElementById('fileInput').click()" class="success">DB 파일 열기</button>
+        <button onclick="openFileWithPicker()" class="success">DB 파일 열기</button>
         <button onclick="reloadFile()" class="success">파일 다시 불러오기</button>
         <button onclick="saveDatabase()" class="success">DB 저장</button>
     </div>
@@ -510,6 +513,7 @@
         let filteredData = [];
         let currentSort = { column: null, direction: null };
         let currentFile = null;  // 현재 파일 객체 저장
+        let currentFileHandle = null;  // File System Access API 핸들
 
         async function loadSqlJs() {
             try {
@@ -524,25 +528,49 @@
             }
         }
 
-        document.getElementById('fileInput').addEventListener('change', async function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            currentFile = file;  // 파일 저장
-            originalFileName = file.name;
-            const arrayBuffer = await file.arrayBuffer();
-            await loadDatabase(arrayBuffer, file.name);
-        });
+        async function openFileWithPicker() {
+            if (!('showOpenFilePicker' in window)) {
+                showToast('이 브라우저는 파일 시스템 접근을 지원하지 않습니다. Chrome 또는 Edge를 사용하세요.');
+                return;
+            }
+
+            try {
+                const [handle] = await window.showOpenFilePicker({
+                    types: [{
+                        description: 'SQLite Database',
+                        accept: { 'application/x-sqlite3': ['.db', '.sqlite', '.sqlite3'] }
+                    }],
+                    multiple: false
+                });
+                
+                currentFileHandle = handle;
+                const file = await handle.getFile();
+                currentFile = file;
+                originalFileName = file.name;
+                
+                const arrayBuffer = await file.arrayBuffer();
+                await loadDatabase(arrayBuffer, file.name);
+                
+                showToast('파일을 열었습니다. 저장 시 원본 파일에 직접 덮어씌워집니다!');
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    showToast('파일 열기 실패: ' + error.message);
+                    console.error(error);
+                }
+            }
+        }
 
         async function reloadFile() {
-            if (!currentFile) {
+            if (!currentFileHandle) {
                 showToast('먼저 파일을 열어주세요.');
                 return;
             }
             
             if (confirm('파일을 다시 불러오면 저장하지 않은 모든 변경사항이 사라집니다. 계속하시겠습니까?')) {
-                const arrayBuffer = await currentFile.arrayBuffer();
-                await loadDatabase(arrayBuffer, currentFile.name);
+                const file = await currentFileHandle.getFile();
+                currentFile = file;
+                const arrayBuffer = await file.arrayBuffer();
+                await loadDatabase(arrayBuffer, file.name);
                 showToast('파일을 다시 불러왔습니다.');
             }
         }
@@ -871,29 +899,52 @@
         }
 
         function saveDatabase() {
-            if (!db || !currentTable) {
+            if (!db || !currentData) {
                 showToast('저장할 데이터가 없습니다.');
                 return;
             }
 
             try {
-                db.run(`DELETE FROM ${currentTable}`);
-                
-                const placeholders = currentColumns.map(() => '?').join(',');
-                const stmt = db.prepare(`INSERT INTO ${currentTable} VALUES (${placeholders})`);
-                
-                currentData.forEach(row => {
-                    stmt.bind(row);
-                    stmt.step();
-                    stmt.reset();
-                });
-                stmt.free();
+                // 현재 보고 있는 테이블만 업데이트
+                if (currentTable && currentTable !== '쿼리 결과') {
+                    db.run(`DELETE FROM ${currentTable}`);
+                    
+                    const placeholders = currentColumns.map(() => '?').join(',');
+                    const stmt = db.prepare(`INSERT INTO ${currentTable} VALUES (${placeholders})`);
+                    
+                    currentData.forEach(row => {
+                        stmt.bind(row);
+                        stmt.step();
+                        stmt.reset();
+                    });
+                    stmt.free();
+                }
 
                 const data = db.export();
-                downloadFile(data);
+                
+                // File System Access API로 원본 파일에 직접 쓰기
+                if (currentFileHandle) {
+                    saveToOriginalFile(data);
+                } else {
+                    // 폴백: 다운로드
+                    downloadFile(data);
+                }
             } catch (error) {
                 showToast('저장 실패: ' + error.message);
                 console.error(error);
+            }
+        }
+
+        async function saveToOriginalFile(data) {
+            try {
+                const writable = await currentFileHandle.createWritable();
+                await writable.write(data);
+                await writable.close();
+                showToast('✅ 원본 파일에 성공적으로 저장되었습니다!');
+            } catch (error) {
+                console.error('파일 쓰기 실패:', error);
+                showToast('원본 파일 저장 실패. 다운로드 방식으로 저장합니다.');
+                downloadFile(data);
             }
         }
 
@@ -903,7 +954,9 @@
             const a = document.createElement('a');
             a.href = url;
             a.download = originalFileName || 'database.db';
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
             URL.revokeObjectURL(url);
             showToast('DB가 다운로드되었습니다.');
         }
