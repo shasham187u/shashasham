@@ -549,6 +549,7 @@
         let currentSort = { column: null, direction: null };
         let currentFile = null;  // 현재 파일 객체 저장
         let currentFileHandle = null;  // File System Access API 핸들
+        let originalArrayBuffer = null;  // 원본 데이터 보관
 
         function toggleDebug() {
             const panel = document.getElementById('debugPanel');
