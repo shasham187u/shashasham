@@ -246,32 +246,6 @@
             white-space: nowrap;
         }
 
-        /* 통계 정보 */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-
-        .stat-card {
-            background: #2d2d30;
-            padding: 12px;
-            border-radius: 6px;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 20px;
-            font-weight: 700;
-            color: #00d084;
-        }
-
-        .stat-label {
-            font-size: 11px;
-            color: #858585;
-            margin-top: 4px;
-        }
-
         /* 에디터 영역 */
         .editor-container {
             flex: 1;
@@ -372,6 +346,8 @@
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
             resize: none;
             line-height: 1.6;
+            overflow-y: auto;
+            overflow-x: auto;
         }
 
         textarea:focus {
@@ -513,34 +489,6 @@
                         <div class="search-results" id="searchResults"></div>
                     </div>
                 </div>
-
-                <!-- 통계 -->
-                <div class="sidebar-section">
-                    <div class="sidebar-header" onclick="toggleSection('stats')">
-                        통계
-                        <span id="statsToggle">▼</span>
-                    </div>
-                    <div class="sidebar-content" id="statsContent">
-                        <div class="stats-grid">
-                            <div class="stat-card">
-                                <div class="stat-value" id="statTotalFiles">0</div>
-                                <div class="stat-label">전체 파일</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value" id="statModified">0</div>
-                                <div class="stat-label">수정됨</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value" id="statTotalLines">0</div>
-                                <div class="stat-label">전체 줄</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value" id="statTotalChars">0</div>
-                                <div class="stat-label">전체 문자</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <div class="editor-container">
@@ -605,7 +553,6 @@
             renderTabs();
             renderFileList();
             switchTab(tabId);
-            updateStats();
         }
 
         // 파일 목록 렌더링
@@ -696,25 +643,6 @@
             editor.scrollTop = (lineNumber - 1) * 20;
         }
 
-        // 통계 업데이트
-        function updateStats() {
-            const totalFiles = tabs.length;
-            const modifiedFiles = tabs.filter(t => t.modified).length;
-            
-            let totalLines = 0;
-            let totalChars = 0;
-            
-            tabs.forEach(tab => {
-                totalLines += tab.content.split('\n').length;
-                totalChars += tab.content.length;
-            });
-
-            document.getElementById('statTotalFiles').textContent = totalFiles;
-            document.getElementById('statModified').textContent = modifiedFiles;
-            document.getElementById('statTotalLines').textContent = totalLines.toLocaleString();
-            document.getElementById('statTotalChars').textContent = totalChars.toLocaleString();
-        }
-
         // 파일 아이콘 가져오기
         function getFileIcon(fileName) {
             const ext = fileName.split('.').pop().toLowerCase();
@@ -790,7 +718,6 @@
             renderTabs();
             renderFileList();
             switchTab(tabId);
-            updateStats();
         }
 
         // 탭 렌더링
@@ -805,7 +732,6 @@
             `).join('');
 
             renderFileList();
-            updateStats();
             updateButtons();
         }
 
@@ -947,7 +873,6 @@
                 }
             }
             updateStatusBar();
-            updateStats();
             
             // 검색 중이면 자동 재검색
             if (document.getElementById('searchInput').value) {
@@ -1007,7 +932,6 @@
 
         // 초기화
         renderFileList();
-        updateStats();
         updateButtons();
     </script>
 </body>
