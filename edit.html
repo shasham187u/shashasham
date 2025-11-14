@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Tab Editor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* 헤더 */
+        .header {
+            background: #2d2d30;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #3e3e42;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: #00d084;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #3e3e42;
+            color: #cccccc;
+        }
+
+        button:hover {
+            background: #4e4e52;
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: #00d084;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #00b872;
+        }
+
+        .btn-danger {
+            background: #f48771;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e06d57;
+        }
+
+        button:disabled {
+            background: #2d2d30;
+            color: #6e6e6e;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 사이드바 */
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #252526;
+            border-right: 1px solid #3e3e42;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 12px 16px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #999;
+            letter-spacing: 0.5px;
+            background: #2d2d30;
+        }
+
+        .recent-files {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .recent-file-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            border-left: 2px solid transparent;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .recent-file-item:hover {
+            background: #2a2d2e;
+            border-left-color: #00d084;
+        }
+
+        .recent-file-item.active {
+            background: #37373d;
+            border-left-color: #00d084;
+        }
+
+        .file-icon {
+            font-size: 16px;
+        }
+
+        .file-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-time {
+            font-size: 11px;
+            color: #858585;
+        }
+
+        .empty-state {
+            padding: 20px;
+            text-align: center;
+            color: #858585;
+            font-size: 13px;
+        }
+
+        /* 에디터 영역 */
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tabs-container {
+            display: flex;
+            background: #2d2d30;
+            border-bottom: 1px solid #3e3e42;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        .tabs-container::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .tabs-container::-webkit-scrollbar-thumb {
+            background: #4e4e52;
+            border-radius: 2px;
+        }
+
+        .tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: #2d2d30;
+            border-right: 1px solid #3e3e42;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            min-width: 120px;
+            max-width: 200px;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            background: #37373d;
+        }
+
+        .tab.active {
+            background: #1e1e1e;
+            border-top: 2px solid #00d084;
+            padding-top: 8px;
+        }
+
+        .tab-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 13px;
+        }
+
+        .tab.modified .tab-name::after {
+            content: " •";
+            color: #00d084;
+        }
+
+        .tab-close {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-size: 16px;
+            color: #858585;
+            transition: all 0.2s ease;
+        }
+
+        .tab-close:hover {
+            background: #4e4e52;
+            color: #cccccc;
+        }
+
+        .editor-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #1e1e1e;
+        }
+
+        textarea {
+            flex: 1;
+            padding: 20px;
+            border: none;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            font-size: 14px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            resize: none;
+            line-height: 1.6;
+        }
+
+        textarea:focus {
+            outline: none;
+        }
+
+        textarea::selection {
+            background: #264f78;
+        }
+
+        /* 상태바 */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 16px;
+            background: #007acc;
+            color: white;
+            font-size: 12px;
+        }
+
+        .status-left, .status-right {
+            display: flex;
+            gap: 16px;
+        }
+
+        .warning {
+            background: #f48771;
+            padding: 12px 20px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        /* 스크롤바 커스터마이징 */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #424242;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4e4e4e;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .header-left {
+                gap: 8px;
+            }
+
+            .button-group {
+                gap: 4px;
+            }
+
+            button {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="warning" id="warningBox" style="display: none;">
+            ⚠️ 이 브라우저는 File System Access API를 지원하지 않습니다. Chrome, Edge 등의 최신 브라우저를 사용해주세요.
+        </div>
+
+        <div class="header">
+            <div class="header-left">
+                <div class="logo">📝 Editor</div>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="openFiles()">
+                        📂 열기
+                    </button>
+                    <button onclick="saveFile()" id="saveBtn" disabled>
+                        💾 저장
+                    </button>
+                    <button onclick="saveFileAs()">
+                        💾 다른 이름으로
+                    </button>
+                    <button class="btn-danger" onclick="closeCurrentTab()" id="closeBtn" disabled>
+                        ✕ 닫기
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="sidebar-header">최근 파일</div>
+                <div class="recent-files" id="recentFiles">
+                    <div class="empty-state">
+                        파일을 열어보세요
+                    </div>
+                </div>
+            </div>
+
+            <div class="editor-container">
+                <div class="tabs-container" id="tabsContainer"></div>
+                <div class="editor-area">
+                    <textarea id="editor" placeholder="파일을 열거나 내용을 입력하세요..."></textarea>
+                </div>
+                <div class="status-bar">
+                    <div class="status-left">
+                        <span id="statusFileName">파일 없음</span>
+                        <span id="statusModified"></span>
+                    </div>
+                    <div class="status-right">
+                        <span id="statusLines">줄: 1</span>
+                        <span id="statusChars">문자: 0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 전역 상태
+        let tabs = [];
+        let activeTabId = null;
+        let recentFiles = [];
+
+        // File System Access API 지원 확인
+        if (!('showOpenFilePicker' in window)) {
+            document.getElementById('warningBox').style.display = 'block';
+        }
+
+        // 로컬 스토리지에서 최근 파일 불러오기
+        function loadRecentFiles() {
+            const stored = localStorage.getItem('recentFiles');
+            if (stored) {
+                recentFiles = JSON.parse(stored);
+                renderRecentFiles();
+            }
+        }
+
+        // 최근 파일 저장
+        function saveRecentFiles() {
+            localStorage.setItem('recentFiles', JSON.stringify(recentFiles));
+        }
+
+        // 최근 파일에 추가
+        function addToRecentFiles(fileName, filePath) {
+            const existing = recentFiles.findIndex(f => f.path === filePath);
+            if (existing !== -1) {
+                recentFiles.splice(existing, 1);
+            }
+            
+            recentFiles.unshift({
+                name: fileName,
+                path: filePath,
+                time: new Date().toISOString()
+            });
+
+            if (recentFiles.length > 20) {
+                recentFiles = recentFiles.slice(0, 20);
+            }
+
+            saveRecentFiles();
+            renderRecentFiles();
+        }
+
+        // 최근 파일 렌더링
+        function renderRecentFiles() {
+            const container = document.getElementById('recentFiles');
+            
+            if (recentFiles.length === 0) {
+                container.innerHTML = '<div class="empty-state">파일을 열어보세요</div>';
+                return;
+            }
+
+            container.innerHTML = recentFiles.map((file, index) => {
+                const timeAgo = getTimeAgo(new Date(file.time));
+                const icon = getFileIcon(file.name);
+                return `
+                    <div class="recent-file-item" onclick="openRecentFile(${index})" title="${file.path}">
+                        <span class="file-icon">${icon}</span>
+                        <span class="file-name">${file.name}</span>
+                        <span class="file-time">${timeAgo}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 파일 아이콘 가져오기
+        function getFileIcon(fileName) {
+            const ext = fileName.split('.').pop().toLowerCase();
+            const icons = {
+                'js': '📜',
+                'json': '📋',
+                'html': '🌐',
+                'css': '🎨',
+                'txt': '📄',
+                'md': '📝',
+                'py': '🐍',
+                'java': '☕',
+            };
+            return icons[ext] || '📄';
+        }
+
+        // 시간 계산
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            
+            if (seconds < 60) return '방금 전';
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}분 전`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)}시간 전`;
+            if (seconds < 2592000) return `${Math.floor(seconds / 86400)}일 전`;
+            return date.toLocaleDateString('ko-KR');
+        }
+
+        // 최근 파일 열기
+        async function openRecentFile(index) {
+            const file = recentFiles[index];
+            // 실제로는 파일 핸들을 저장할 수 없으므로, 사용자에게 다시 선택하도록 안내
+            alert(`"${file.name}" 파일을 다시 선택해주세요.\n\n파일 경로: ${file.path}`);
+            openFiles();
+        }
+
+        // 파일 열기 (여러 개 가능)
+        async function openFiles() {
+            try {
+                const handles = await window.showOpenFilePicker({
+                    types: [
+                        {
+                            description: '텍스트 파일',
+                            accept: {
+                                'text/plain': ['.txt', '.md'],
+                                'text/html': ['.html', '.htm'],
+                                'text/css': ['.css'],
+                                'text/javascript': ['.js'],
+                                'application/json': ['.json'],
+                                'text/x-python': ['.py'],
+                                'text/x-java': ['.java'],
+                            }
+                        }
+                    ],
+                    multiple: true
+                });
+
+                for (const handle of handles) {
+                    await openFileHandle(handle);
+                }
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error('파일 열기 실패:', err);
+                    alert('파일을 열 수 없습니다: ' + err.message);
+                }
+            }
+        }
+
+        // 파일 핸들로 파일 열기
+        async function openFileHandle(handle) {
+            const file = await handle.getFile();
+            const contents = await file.text();
+            
+            // 이미 열려있는 파일인지 확인
+            const existingTab = tabs.find(tab => tab.name === file.name);
+            if (existingTab) {
+                switchTab(existingTab.id);
+                return;
+            }
+
+            // 새 탭 생성
+            const tabId = Date.now() + Math.random();
+            const newTab = {
+                id: tabId,
+                name: file.name,
+                content: contents,
+                fileHandle: handle,
+                modified: false,
+                originalContent: contents
+            };
+
+            tabs.push(newTab);
+            addToRecentFiles(file.name, file.name); // 실제로는 전체 경로를 저장해야 함
+            renderTabs();
+            switchTab(tabId);
+        }
+
+        // 탭 렌더링
+        function renderTabs() {
+            const container = document.getElementById('tabsContainer');
+            container.innerHTML = tabs.map(tab => `
+                <div class="tab ${tab.id === activeTabId ? 'active' : ''} ${tab.modified ? 'modified' : ''}" 
+                     onclick="switchTab(${tab.id})">
+                    <span class="tab-name">${tab.name}</span>
+                    <span class="tab-close" onclick="event.stopPropagation(); closeTab(${tab.id})">×</span>
+                </div>
+            `).join('');
+
+            updateButtons();
+        }
+
+        // 탭 전환
+        function switchTab(tabId) {
+            // 현재 탭 내용 저장
+            if (activeTabId !== null) {
+                const currentTab = tabs.find(t => t.id === activeTabId);
+                if (currentTab) {
+                    currentTab.content = document.getElementById('editor').value;
+                }
+            }
+
+            activeTabId = tabId;
+            const tab = tabs.find(t => t.id === tabId);
+            
+            if (tab) {
+                document.getElementById('editor').value = tab.content;
+                document.getElementById('statusFileName').textContent = tab.name;
+                updateStatusBar();
+            }
+
+            renderTabs();
+        }
+
+        // 탭 닫기
+        function closeTab(tabId) {
+            const tab = tabs.find(t => t.id === tabId);
+            
+            if (tab && tab.modified) {
+                if (!confirm(`"${tab.name}" 파일이 수정되었습니다. 닫으시겠습니까?`)) {
+                    return;
+                }
+            }
+
+            tabs = tabs.filter(t => t.id !== tabId);
+
+            if (activeTabId === tabId) {
+                if (tabs.length > 0) {
+                    switchTab(tabs[tabs.length - 1].id);
+                } else {
+                    activeTabId = null;
+                    document.getElementById('editor').value = '';
+                    document.getElementById('statusFileName').textContent = '파일 없음';
+                }
+            }
+
+            renderTabs();
+        }
+
+        // 현재 탭 닫기
+        function closeCurrentTab() {
+            if (activeTabId !== null) {
+                closeTab(activeTabId);
+            }
+        }
+
+        // 저장
+        async function saveFile() {
+            if (activeTabId === null) return;
+
+            const tab = tabs.find(t => t.id === activeTabId);
+            if (!tab || !tab.fileHandle) {
+                await saveFileAs();
+                return;
+            }
+
+            try {
+                const writable = await tab.fileHandle.createWritable();
+                const content = document.getElementById('editor').value;
+                await writable.write(content);
+                await writable.close();
+
+                tab.content = content;
+                tab.originalContent = content;
+                tab.modified = false;
+                renderTabs();
+                
+                console.log('저장 완료:', tab.name);
+            } catch (err) {
+                console.error('저장 실패:', err);
+                alert('파일을 저장할 수 없습니다: ' + err.message);
+            }
+        }
+
+        // 다른 이름으로 저장
+        async function saveFileAs() {
+            if (activeTabId === null) return;
+
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: tabs.find(t => t.id === activeTabId)?.name || 'untitled.txt',
+                    types: [
+                        {
+                            description: '텍스트 파일',
+                            accept: { 'text/plain': ['.txt'] }
+                        }
+                    ]
+                });
+
+                const writable = await handle.createWritable();
+                const content = document.getElementById('editor').value;
+                await writable.write(content);
+                await writable.close();
+
+                const tab = tabs.find(t => t.id === activeTabId);
+                if (tab) {
+                    const file = await handle.getFile();
+                    tab.name = file.name;
+                    tab.fileHandle = handle;
+                    tab.content = content;
+                    tab.originalContent = content;
+                    tab.modified = false;
+                    addToRecentFiles(file.name, file.name);
+                    renderTabs();
+                    document.getElementById('statusFileName').textContent = file.name;
+                }
+
+                console.log('저장 완료');
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error('저장 실패:', err);
+                    alert('파일을 저장할 수 없습니다: ' + err.message);
+                }
+            }
+        }
+
+        // 에디터 변경 감지
+        document.getElementById('editor').addEventListener('input', function() {
+            if (activeTabId !== null) {
+                const tab = tabs.find(t => t.id === activeTabId);
+                if (tab) {
+                    tab.content = this.value;
+                    tab.modified = tab.content !== tab.originalContent;
+                    renderTabs();
+                }
+            }
+            updateStatusBar();
+        });
+
+        // 상태바 업데이트
+        function updateStatusBar() {
+            const content = document.getElementById('editor').value;
+            const lines = content.split('\n').length;
+            const chars = content.length;
+            
+            document.getElementById('statusLines').textContent = `줄: ${lines}`;
+            document.getElementById('statusChars').textContent = `문자: ${chars}`;
+            
+            const tab = tabs.find(t => t.id === activeTabId);
+            document.getElementById('statusModified').textContent = 
+                tab && tab.modified ? '● 수정됨' : '';
+        }
+
+        // 버튼 상태 업데이트
+        function updateButtons() {
+            const hasActiveTab = activeTabId !== null;
+            document.getElementById('saveBtn').disabled = !hasActiveTab;
+            document.getElementById('closeBtn').disabled = !hasActiveTab;
+        }
+
+        // 단축키
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+S / Cmd+S: 저장
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                saveFile();
+            }
+            // Ctrl+W / Cmd+W: 탭 닫기
+            else if ((e.ctrlKey || e.metaKey) && e.key === 'w') {
+                e.preventDefault();
+                closeCurrentTab();
+            }
+            // Ctrl+O / Cmd+O: 파일 열기
+            else if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
+                e.preventDefault();
+                openFiles();
+            }
+        });
+
+        // 초기화
+        loadRecentFiles();
+        updateButtons();
+    </script>
+</body>
+</html>
