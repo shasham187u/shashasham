@@ -1,520 +1,293 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, Upload, Star, Calendar, Bookmark, Highlighter, StickyNote, Camera, X, ChevronLeft, ChevronRight, Menu, Trash2 } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File System Access API 데모</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-const EbookReaderApp = () => {
-  const [books, setBooks] = useState([]);
-  const [currentBook, setCurrentBook] = useState(null);
-  const [view, setView] = useState('library'); // library, reader, calendar
-  const [categories, setCategories] = useState(['전체', '소설', '에세이', '비문학']);
-  const [selectedCategory, setSelectedCategory] = useState('전체');
-  const [showMenu, setShowMenu] = useState(false);
-  const [highlights, setHighlights] = useState({});
-  const [bookmarks, setBookmarks] = useState({});
-  const [notes, setNotes] = useState({});
-  const [readingLog, setReadingLog] = useState({});
-  const [showNoteModal, setShowNoteModal] = useState(false);
-  const [currentSelection, setCurrentSelection] = useState(null);
-  const [fontSize, setFontSize] = useState(16);
-  const fileInputRef = useRef(null);
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
 
-  // 로컬 스토리지에서 데이터 로드
-  useEffect(() => {
-    const savedBooks = JSON.parse(localStorage.getItem('books') || '[]');
-    const savedHighlights = JSON.parse(localStorage.getItem('highlights') || '{}');
-    const savedBookmarks = JSON.parse(localStorage.getItem('bookmarks') || '{}');
-    const savedNotes = JSON.parse(localStorage.getItem('notes') || '{}');
-    const savedReadingLog = JSON.parse(localStorage.getItem('readingLog') || '{}');
-    
-    setBooks(savedBooks);
-    setHighlights(savedHighlights);
-    setBookmarks(savedBookmarks);
-    setNotes(savedNotes);
-    setReadingLog(savedReadingLog);
-  }, []);
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
 
-  // 데이터 저장
-  useEffect(() => {
-    localStorage.setItem('books', JSON.stringify(books));
-  }, [books]);
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
 
-  useEffect(() => {
-    localStorage.setItem('highlights', JSON.stringify(highlights));
-  }, [highlights]);
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
 
-  useEffect(() => {
-    localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
-  }, [bookmarks]);
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
 
-  useEffect(() => {
-    localStorage.setItem('notes', JSON.stringify(notes));
-  }, [notes]);
+        button {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+        }
 
-  useEffect(() => {
-    localStorage.setItem('readingLog', JSON.stringify(readingLog));
-  }, [readingLog]);
+        .btn-open {
+            background: #667eea;
+        }
 
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file && file.name.endsWith('.epub')) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const bookData = {
-          id: Date.now().toString(),
-          title: file.name.replace('.epub', ''),
-          author: '작가명',
-          category: '소설',
-          addedDate: new Date().toISOString(),
-          rating: 0,
-          review: '',
-          currentPage: 0,
-          totalPages: 100,
-          content: e.target.result,
-          series: '' // 작품 시리즈
-        };
-        setBooks([...books, bookData]);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      alert('EPUB 파일만 업로드 가능합니다.');
-    }
-  };
+        .btn-open:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
 
-  const openBook = (book) => {
-    setCurrentBook(book);
-    setView('reader');
-    
-    // 오늘 날짜에 독서 기록 추가
-    const today = new Date().toISOString().split('T')[0];
-    setReadingLog(prev => ({
-      ...prev,
-      [today]: [...(prev[today] || []), book.id]
-    }));
-  };
+        .btn-save {
+            background: #48bb78;
+        }
 
-  const deleteBook = (bookId) => {
-    if (confirm('이 책을 삭제하시겠습니까?')) {
-      setBooks(books.filter(b => b.id !== bookId));
-      // 관련 데이터도 삭제
-      const newHighlights = { ...highlights };
-      delete newHighlights[bookId];
-      setHighlights(newHighlights);
-      
-      const newBookmarks = { ...bookmarks };
-      delete newBookmarks[bookId];
-      setBookmarks(newBookmarks);
-      
-      const newNotes = { ...notes };
-      delete newNotes[bookId];
-      setNotes(newNotes);
-    }
-  };
+        .btn-save:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
+        }
 
-  const addHighlight = (color) => {
-    if (currentBook && currentSelection) {
-      const bookHighlights = highlights[currentBook.id] || [];
-      setHighlights({
-        ...highlights,
-        [currentBook.id]: [...bookHighlights, {
-          id: Date.now().toString(),
-          text: currentSelection,
-          color: color,
-          page: currentBook.currentPage
-        }]
-      });
-      setCurrentSelection(null);
-    }
-  };
+        .btn-save-as {
+            background: #ed8936;
+        }
 
-  const addBookmark = () => {
-    if (currentBook) {
-      const bookBookmarks = bookmarks[currentBook.id] || [];
-      setBookmarks({
-        ...bookmarks,
-        [currentBook.id]: [...bookBookmarks, {
-          id: Date.now().toString(),
-          page: currentBook.currentPage,
-          date: new Date().toISOString()
-        }]
-      });
-      alert('책갈피가 추가되었습니다!');
-    }
-  };
+        .btn-save-as:hover {
+            background: #dd6b20;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(237, 137, 54, 0.4);
+        }
 
-  const addNote = (noteText) => {
-    if (currentBook && currentSelection) {
-      const bookNotes = notes[currentBook.id] || [];
-      setNotes({
-        ...notes,
-        [currentBook.id]: [...bookNotes, {
-          id: Date.now().toString(),
-          text: currentSelection,
-          note: noteText,
-          page: currentBook.currentPage,
-          date: new Date().toISOString()
-        }]
-      });
-      setShowNoteModal(false);
-      setCurrentSelection(null);
-    }
-  };
+        button:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
 
-  const captureExcerpt = () => {
-    alert('발췌 기능: 현재 페이지를 이미지로 저장합니다. (실제 구현 시 html2canvas 라이브러리 사용)');
-  };
+        textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
 
-  const updateRating = (bookId, rating) => {
-    setBooks(books.map(b => b.id === bookId ? { ...b, rating } : b));
-  };
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
 
-  const updateReview = (bookId, review) => {
-    setBooks(books.map(b => b.id === bookId ? { ...b, review } : b));
-  };
+        .info {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #4a5568;
+        }
 
-  const groupByCategory = () => {
-    if (selectedCategory === '전체') return books;
-    return books.filter(b => b.category === selectedCategory);
-  };
+        .info strong {
+            color: #2d3748;
+        }
 
-  const renderLibrary = () => (
-    <div className="h-screen flex flex-col bg-gray-50">
-      <div className="bg-white shadow-sm p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold text-gray-800">내 서재</h1>
-          <button
-            onClick={() => fileInputRef.current.click()}
-            className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-          >
-            <Upload size={20} />
-            책 추가
-          </button>
+        .warning {
+            background: #fff5f5;
+            border-left: 4px solid #fc8181;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #742a2a;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📁 File System Access API</h1>
+        <p class="subtitle">브라우저에서 로컬 파일을 읽고 쓸 수 있습니다</p>
+
+        <div class="warning" id="warningBox" style="display: none;">
+            ⚠️ 이 브라우저는 File System Access API를 지원하지 않습니다. Chrome, Edge 등의 최신 브라우저를 사용해주세요.
         </div>
-        
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-full whitespace-nowrap ${
-                selectedCategory === cat
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+
+        <div class="button-group">
+            <button class="btn-open" onclick="openFile()">📂 파일 열기</button>
+            <button class="btn-save" onclick="saveFile()" id="saveBtn" disabled>💾 저장</button>
+            <button class="btn-save-as" onclick="saveFileAs()">💾 다른 이름으로 저장</button>
         </div>
-      </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {groupByCategory().map(book => (
-            <div key={book.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-              <div 
-                className="h-48 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center cursor-pointer"
-                onClick={() => openBook(book)}
-              >
-                <BookOpen size={48} className="text-white" />
-              </div>
-              <div className="p-3">
-                <h3 className="font-semibold text-gray-800 truncate">{book.title}</h3>
-                <p className="text-sm text-gray-600 truncate">{book.author}</p>
-                <div className="flex items-center gap-1 mt-2">
-                  {[1, 2, 3, 4, 5].map(star => (
-                    <Star
-                      key={star}
-                      size={16}
-                      className={`cursor-pointer ${
-                        star <= book.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-                      }`}
-                      onClick={() => updateRating(book.id, star)}
-                    />
-                  ))}
-                </div>
-                <button
-                  onClick={() => deleteBook(book.id)}
-                  className="mt-2 text-red-500 text-sm hover:text-red-700 flex items-center gap-1"
-                >
-                  <Trash2 size={14} />
-                  삭제
-                </button>
-              </div>
-            </div>
-          ))}
+        <textarea id="editor" placeholder="여기에 텍스트를 입력하거나 파일을 열어보세요..."></textarea>
+
+        <div class="info">
+            <strong>현재 파일:</strong> <span id="fileName">없음</span>
         </div>
-      </div>
-
-      <div className="bg-white border-t p-4 flex justify-around">
-        <button onClick={() => setView('library')} className="flex flex-col items-center text-blue-500">
-          <BookOpen size={24} />
-          <span className="text-xs mt-1">서재</span>
-        </button>
-        <button onClick={() => setView('calendar')} className="flex flex-col items-center text-gray-500">
-          <Calendar size={24} />
-          <span className="text-xs mt-1">독서달력</span>
-        </button>
-      </div>
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".epub"
-        onChange={handleFileUpload}
-        className="hidden"
-      />
     </div>
-  );
 
-  const renderReader = () => (
-    <div className="h-screen flex flex-col bg-white">
-      <div className="bg-gray-800 text-white p-4 flex items-center justify-between">
-        <button onClick={() => setView('library')} className="hover:bg-gray-700 p-2 rounded">
-          <ChevronLeft size={24} />
-        </button>
-        <h2 className="font-semibold truncate flex-1 mx-4">{currentBook?.title}</h2>
-        <button onClick={() => setShowMenu(!showMenu)} className="hover:bg-gray-700 p-2 rounded">
-          <Menu size={24} />
-        </button>
-      </div>
+    <script>
+        let fileHandle = null;
 
-      {showMenu && (
-        <div className="bg-gray-100 border-b p-4">
-          <div className="flex flex-wrap gap-2 mb-3">
-            <button
-              onClick={() => addHighlight('yellow')}
-              className="flex items-center gap-2 px-3 py-2 bg-yellow-200 rounded hover:bg-yellow-300"
-            >
-              <Highlighter size={18} />
-              노랑
-            </button>
-            <button
-              onClick={() => addHighlight('green')}
-              className="flex items-center gap-2 px-3 py-2 bg-green-200 rounded hover:bg-green-300"
-            >
-              <Highlighter size={18} />
-              초록
-            </button>
-            <button
-              onClick={() => addHighlight('pink')}
-              className="flex items-center gap-2 px-3 py-2 bg-pink-200 rounded hover:bg-pink-300"
-            >
-              <Highlighter size={18} />
-              분홍
-            </button>
-            <button
-              onClick={() => setShowNoteModal(true)}
-              className="flex items-center gap-2 px-3 py-2 bg-blue-200 rounded hover:bg-blue-300"
-            >
-              <StickyNote size={18} />
-              메모
-            </button>
-            <button
-              onClick={addBookmark}
-              className="flex items-center gap-2 px-3 py-2 bg-purple-200 rounded hover:bg-purple-300"
-            >
-              <Bookmark size={18} />
-              책갈피
-            </button>
-            <button
-              onClick={captureExcerpt}
-              className="flex items-center gap-2 px-3 py-2 bg-orange-200 rounded hover:bg-orange-300"
-            >
-              <Camera size={18} />
-              발췌
-            </button>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <span className="text-sm">글자 크기:</span>
-            <button
-              onClick={() => setFontSize(Math.max(12, fontSize - 2))}
-              className="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
-            >
-              -
-            </button>
-            <span className="text-sm">{fontSize}px</span>
-            <button
-              onClick={() => setFontSize(Math.min(24, fontSize + 2))}
-              className="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
-            >
-              +
-            </button>
-          </div>
-        </div>
-      )}
+        // File System Access API 지원 확인
+        if (!('showOpenFilePicker' in window)) {
+            document.getElementById('warningBox').style.display = 'block';
+            document.querySelectorAll('button').forEach(btn => btn.disabled = true);
+        }
 
-      <div 
-        className="flex-1 overflow-y-auto p-8"
-        style={{ fontSize: `${fontSize}px`, lineHeight: '1.8' }}
-        onMouseUp={() => {
-          const selection = window.getSelection().toString();
-          if (selection) setCurrentSelection(selection);
-        }}
-      >
-        <p className="text-gray-800 leading-relaxed">
-          이곳에 EPUB 내용이 표시됩니다. 실제 구현 시 EPUB.js 라이브러리를 사용하여 EPUB 파일을 파싱하고 렌더링합니다.
-          <br /><br />
-          텍스트를 드래그하면 형광펜이나 메모를 추가할 수 있습니다.
-          <br /><br />
-          글자 크기를 조절하여 읽기 편한 환경을 만들 수 있습니다.
-          <br /><br />
-          {highlights[currentBook?.id]?.map(h => (
-            <span key={h.id} style={{ backgroundColor: h.color === 'yellow' ? '#fef08a' : h.color === 'green' ? '#bbf7d0' : '#fbcfe8' }}>
-              {h.text}
-            </span>
-          ))}
-        </p>
-      </div>
+        // 파일 열기
+        async function openFile() {
+            try {
+                const [handle] = await window.showOpenFilePicker({
+                    types: [
+                        {
+                            description: '텍스트 파일',
+                            accept: {
+                                'text/plain': ['.txt'],
+                                'text/html': ['.html'],
+                                'text/css': ['.css'],
+                                'text/javascript': ['.js'],
+                                'application/json': ['.json'],
+                            }
+                        }
+                    ],
+                    multiple: false
+                });
 
-      <div className="bg-gray-100 p-4 flex justify-between items-center">
-        <button className="p-2 bg-white rounded-lg shadow hover:shadow-md">
-          <ChevronLeft size={24} />
-        </button>
-        <span className="text-sm text-gray-600">
-          {currentBook?.currentPage} / {currentBook?.totalPages}
-        </span>
-        <button className="p-2 bg-white rounded-lg shadow hover:shadow-md">
-          <ChevronRight size={24} />
-        </button>
-      </div>
-
-      {showNoteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">메모 추가</h3>
-              <button onClick={() => setShowNoteModal(false)}>
-                <X size={24} />
-              </button>
-            </div>
-            <p className="text-sm text-gray-600 mb-3 p-2 bg-yellow-50 rounded">
-              "{currentSelection}"
-            </p>
-            <textarea
-              className="w-full border rounded p-3 mb-4"
-              rows="4"
-              placeholder="메모를 입력하세요..."
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && e.ctrlKey) {
-                  addNote(e.target.value);
-                }
-              }}
-            />
-            <button
-              onClick={(e) => {
-                const textarea = e.target.previousSibling;
-                addNote(textarea.value);
-              }}
-              className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
-            >
-              저장
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  const renderCalendar = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const firstDay = new Date(year, month, 1).getDay();
-    
-    const days = [];
-    for (let i = 0; i < firstDay; i++) {
-      days.push(null);
-    }
-    for (let i = 1; i <= daysInMonth; i++) {
-      days.push(i);
-    }
-
-    return (
-      <div className="h-screen flex flex-col bg-gray-50">
-        <div className="bg-white shadow-sm p-4">
-          <h1 className="text-2xl font-bold text-gray-800">독서 달력</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            {year}년 {month + 1}월
-          </p>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-4">
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="grid grid-cols-7 gap-2 mb-2">
-              {['일', '월', '화', '수', '목', '금', '토'].map(day => (
-                <div key={day} className="text-center text-sm font-semibold text-gray-600">
-                  {day}
-                </div>
-              ))}
-            </div>
-            <div className="grid grid-cols-7 gap-2">
-              {days.map((day, index) => {
-                const dateStr = day ? `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}` : null;
-                const hasReading = dateStr && readingLog[dateStr]?.length > 0;
+                fileHandle = handle;
+                const file = await handle.getFile();
+                const contents = await file.text();
                 
-                return (
-                  <div
-                    key={index}
-                    className={`aspect-square flex items-center justify-center rounded ${
-                      day
-                        ? hasReading
-                          ? 'bg-blue-100 text-blue-700 font-semibold'
-                          : 'bg-gray-50 text-gray-700'
-                        : ''
-                    }`}
-                  >
-                    {day}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+                document.getElementById('editor').value = contents;
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('saveBtn').disabled = false;
+                
+                console.log('파일 열기 성공:', file.name);
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error('파일 열기 실패:', err);
+                    alert('파일을 열 수 없습니다: ' + err.message);
+                }
+            }
+        }
 
-          <div className="mt-6 bg-white rounded-lg shadow p-4">
-            <h3 className="font-semibold text-gray-800 mb-3">최근 독서 기록</h3>
-            {Object.entries(readingLog)
-              .sort(([a], [b]) => b.localeCompare(a))
-              .slice(0, 10)
-              .map(([date, bookIds]) => (
-                <div key={date} className="mb-3 pb-3 border-b last:border-b-0">
-                  <p className="text-sm text-gray-600 mb-1">{date}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {[...new Set(bookIds)].map(bookId => {
-                      const book = books.find(b => b.id === bookId);
-                      return book ? (
-                        <span key={bookId} className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                          {book.title}
-                        </span>
-                      ) : null;
-                    })}
-                  </div>
-                </div>
-              ))}
-          </div>
-        </div>
+        // 현재 파일에 저장 (기존 파일 덮어쓰기)
+        async function saveFile() {
+            if (!fileHandle) {
+                alert('먼저 파일을 열어주세요.');
+                return;
+            }
 
-        <div className="bg-white border-t p-4 flex justify-around">
-          <button onClick={() => setView('library')} className="flex flex-col items-center text-gray-500">
-            <BookOpen size={24} />
-            <span className="text-xs mt-1">서재</span>
-          </button>
-          <button onClick={() => setView('calendar')} className="flex flex-col items-center text-blue-500">
-            <Calendar size={24} />
-            <span className="text-xs mt-1">독서달력</span>
-          </button>
-        </div>
-      </div>
-    );
-  };
+            try {
+                const writable = await fileHandle.createWritable();
+                const content = document.getElementById('editor').value;
+                await writable.write(content);
+                await writable.close();
+                
+                alert('저장되었습니다!');
+                console.log('파일 저장 성공');
+            } catch (err) {
+                console.error('파일 저장 실패:', err);
+                alert('파일을 저장할 수 없습니다: ' + err.message);
+            }
+        }
 
-  return (
-    <div>
-      {view === 'library' && renderLibrary()}
-      {view === 'reader' && currentBook && renderReader()}
-      {view === 'calendar' && renderCalendar()}
-    </div>
-  );
-};
+        // 다른 이름으로 저장
+        async function saveFileAs() {
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: 'untitled.txt',
+                    types: [
+                        {
+                            description: '텍스트 파일',
+                            accept: {
+                                'text/plain': ['.txt'],
+                            }
+                        }
+                    ]
+                });
 
-export default EbookReaderApp;
+                const writable = await handle.createWritable();
+                const content = document.getElementById('editor').value;
+                await writable.write(content);
+                await writable.close();
+
+                fileHandle = handle;
+                const file = await handle.getFile();
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('saveBtn').disabled = false;
+                
+                alert('저장되었습니다!');
+                console.log('파일 저장 성공:', file.name);
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error('파일 저장 실패:', err);
+                    alert('파일을 저장할 수 없습니다: ' + err.message);
+                }
+            }
+        }
+
+        // 단축키 지원 (Ctrl+S 또는 Cmd+S)
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                if (fileHandle) {
+                    saveFile();
+                } else {
+                    saveFileAs();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
