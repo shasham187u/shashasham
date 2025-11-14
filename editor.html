@@ -17,55 +17,65 @@
             color: #d4d4d4;
             height: 100vh;
             overflow: hidden;
+            margin: 0;
+            padding: 0;
         }
 
         .app-container {
             display: flex;
             flex-direction: column;
             height: 100vh;
+            width: 100vw;
+            overflow: hidden;
         }
 
         /* 헤더 */
         .header {
             background: #2d2d30;
-            padding: 12px 20px;
+            padding: 8px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             border-bottom: 1px solid #3e3e42;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            flex-shrink: 0;
+            min-height: 48px;
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
         .logo {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
             color: #00d084;
+            white-space: nowrap;
         }
 
         .button-group {
             display: flex;
-            gap: 8px;
+            gap: 6px;
+            flex-wrap: wrap;
         }
 
         button {
-            padding: 8px 16px;
+            padding: 6px 12px;
             border: none;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             background: #3e3e42;
             color: #cccccc;
+            white-space: nowrap;
         }
 
         button:hover {
@@ -107,6 +117,159 @@
             display: flex;
             flex: 1;
             overflow: hidden;
+            min-height: 0;
+        }
+
+        /* 사이드바 */
+        .sidebar {
+            width: 280px;
+            background: #252526;
+            border-right: 1px solid #3e3e42;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-section {
+            display: flex;
+            flex-direction: column;
+            border-bottom: 1px solid #3e3e42;
+        }
+
+        .sidebar-header {
+            padding: 12px 16px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #999;
+            letter-spacing: 0.5px;
+            background: #2d2d30;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header:hover {
+            background: #37373d;
+        }
+
+        .sidebar-content {
+            padding: 12px;
+        }
+
+        .sidebar-content.collapsed {
+            display: none;
+        }
+
+        /* 검색 기능 */
+        .search-box {
+            width: 100%;
+            padding: 8px 12px;
+            background: #3c3c3c;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            color: #cccccc;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #00d084;
+        }
+
+        .search-results {
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+
+        .search-result-item {
+            padding: 6px 8px;
+            background: #2d2d30;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .search-result-item:hover {
+            background: #37373d;
+        }
+
+        .search-result-line {
+            color: #858585;
+            font-size: 11px;
+        }
+
+        .search-highlight {
+            background: #00d08433;
+            color: #00d084;
+        }
+
+        /* 파일 목록 */
+        .file-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .file-list-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-left: 2px solid transparent;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .file-list-item:hover {
+            background: #2a2d2e;
+            border-left-color: #00d084;
+        }
+
+        .file-list-item.active {
+            background: #37373d;
+            border-left-color: #00d084;
+        }
+
+        .file-icon {
+            font-size: 16px;
+        }
+
+        .file-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* 통계 정보 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .stat-card {
+            background: #2d2d30;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #00d084;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #858585;
+            margin-top: 4px;
         }
 
         /* 에디터 영역 */
@@ -115,6 +278,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            min-width: 0;
         }
 
         .tabs-container {
@@ -123,6 +287,7 @@
             border-bottom: 1px solid #3e3e42;
             overflow-x: auto;
             overflow-y: hidden;
+            flex-shrink: 0;
         }
 
         .tabs-container::-webkit-scrollbar {
@@ -193,6 +358,8 @@
             display: flex;
             flex-direction: column;
             background: #1e1e1e;
+            min-height: 0;
+            overflow: hidden;
         }
 
         textarea {
@@ -224,6 +391,7 @@
             background: #007acc;
             color: white;
             font-size: 12px;
+            flex-shrink: 0;
         }
 
         .status-left, .status-right {
@@ -257,6 +425,10 @@
         }
 
         @media (max-width: 768px) {
+            .sidebar {
+                width: 220px;
+            }
+
             .header-left {
                 gap: 8px;
             }
@@ -266,8 +438,26 @@
             }
 
             button {
-                padding: 6px 12px;
-                font-size: 12px;
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+
+            .logo {
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar {
+                position: absolute;
+                left: -280px;
+                height: calc(100vh - 48px);
+                z-index: 100;
+                transition: left 0.3s ease;
+            }
+
+            .sidebar.open {
+                left: 0;
             }
         }
     </style>
@@ -282,6 +472,9 @@
             <div class="header-left">
                 <div class="logo">📝 Editor</div>
                 <div class="button-group">
+                    <button class="btn-primary" onclick="createNewFile()">
+                        ➕ 새 파일
+                    </button>
                     <button class="btn-primary" onclick="openFiles()">
                         📂 열기
                     </button>
@@ -299,6 +492,57 @@
         </div>
 
         <div class="main-content">
+            <div class="sidebar">
+                <!-- 열린 파일 목록 -->
+                <div class="sidebar-section">
+                    <div class="sidebar-header" onclick="toggleSection('openFiles')">
+                        열린 파일
+                        <span id="openFilesToggle">▼</span>
+                    </div>
+                    <div class="file-list" id="openFilesList"></div>
+                </div>
+
+                <!-- 검색 기능 -->
+                <div class="sidebar-section">
+                    <div class="sidebar-header" onclick="toggleSection('search')">
+                        검색
+                        <span id="searchToggle">▼</span>
+                    </div>
+                    <div class="sidebar-content" id="searchContent">
+                        <input type="text" class="search-box" id="searchInput" placeholder="현재 파일에서 검색...">
+                        <div class="search-results" id="searchResults"></div>
+                    </div>
+                </div>
+
+                <!-- 통계 -->
+                <div class="sidebar-section">
+                    <div class="sidebar-header" onclick="toggleSection('stats')">
+                        통계
+                        <span id="statsToggle">▼</span>
+                    </div>
+                    <div class="sidebar-content" id="statsContent">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value" id="statTotalFiles">0</div>
+                                <div class="stat-label">전체 파일</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="statModified">0</div>
+                                <div class="stat-label">수정됨</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="statTotalLines">0</div>
+                                <div class="stat-label">전체 줄</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="statTotalChars">0</div>
+                                <div class="stat-label">전체 문자</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="editor-container">
                 <div class="tabs-container" id="tabsContainer"></div>
                 <div class="editor-area">
@@ -322,10 +566,153 @@
         // 전역 상태
         let tabs = [];
         let activeTabId = null;
+        let untitledCounter = 1;
 
         // File System Access API 지원 확인
         if (!('showOpenFilePicker' in window)) {
             document.getElementById('warningBox').style.display = 'block';
+        }
+
+        // 사이드바 섹션 토글
+        function toggleSection(sectionName) {
+            const content = document.getElementById(sectionName + 'Content');
+            const toggle = document.getElementById(sectionName + 'Toggle');
+            const list = document.getElementById(sectionName + 'List');
+            
+            const target = content || list;
+            if (target) {
+                target.classList.toggle('collapsed');
+                toggle.textContent = target.classList.contains('collapsed') ? '▶' : '▼';
+            }
+        }
+
+        // 새 파일 만들기
+        function createNewFile() {
+            const tabId = Date.now() + Math.random();
+            const fileName = `untitled-${untitledCounter++}.txt`;
+            
+            const newTab = {
+                id: tabId,
+                name: fileName,
+                content: '',
+                fileHandle: null,
+                modified: false,
+                originalContent: '',
+                isNew: true
+            };
+
+            tabs.push(newTab);
+            renderTabs();
+            renderFileList();
+            switchTab(tabId);
+            updateStats();
+        }
+
+        // 파일 목록 렌더링
+        function renderFileList() {
+            const container = document.getElementById('openFilesList');
+            
+            if (tabs.length === 0) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center; color: #858585; font-size: 13px;">열린 파일 없음</div>';
+                return;
+            }
+
+            container.innerHTML = tabs.map(tab => {
+                const icon = getFileIcon(tab.name);
+                return `
+                    <div class="file-list-item ${tab.id === activeTabId ? 'active' : ''}" onclick="switchTab(${tab.id})">
+                        <span class="file-icon">${icon}</span>
+                        <span class="file-name">${tab.name}${tab.modified ? ' •' : ''}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 검색 기능
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', performSearch);
+            }
+        });
+
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const resultsContainer = document.getElementById('searchResults');
+            
+            if (!query || activeTabId === null) {
+                resultsContainer.innerHTML = '';
+                return;
+            }
+
+            const tab = tabs.find(t => t.id === activeTabId);
+            if (!tab) return;
+
+            const lines = tab.content.split('\n');
+            const results = [];
+
+            lines.forEach((line, index) => {
+                if (line.toLowerCase().includes(query)) {
+                    results.push({
+                        lineNumber: index + 1,
+                        text: line,
+                        query: query
+                    });
+                }
+            });
+
+            if (results.length === 0) {
+                resultsContainer.innerHTML = '<div style="padding: 8px; color: #858585;">결과 없음</div>';
+                return;
+            }
+
+            resultsContainer.innerHTML = results.map(result => {
+                const highlighted = highlightText(result.text, result.query);
+                return `
+                    <div class="search-result-item" onclick="goToLine(${result.lineNumber})">
+                        <div class="search-result-line">줄 ${result.lineNumber}</div>
+                        <div>${highlighted}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function highlightText(text, query) {
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<span class="search-highlight">$1</span>');
+        }
+
+        function goToLine(lineNumber) {
+            const editor = document.getElementById('editor');
+            const lines = editor.value.split('\n');
+            let pos = 0;
+            
+            for (let i = 0; i < lineNumber - 1 && i < lines.length; i++) {
+                pos += lines[i].length + 1;
+            }
+            
+            editor.focus();
+            editor.setSelectionRange(pos, pos + (lines[lineNumber - 1]?.length || 0));
+            editor.scrollTop = (lineNumber - 1) * 20;
+        }
+
+        // 통계 업데이트
+        function updateStats() {
+            const totalFiles = tabs.length;
+            const modifiedFiles = tabs.filter(t => t.modified).length;
+            
+            let totalLines = 0;
+            let totalChars = 0;
+            
+            tabs.forEach(tab => {
+                totalLines += tab.content.split('\n').length;
+                totalChars += tab.content.length;
+            });
+
+            document.getElementById('statTotalFiles').textContent = totalFiles;
+            document.getElementById('statModified').textContent = modifiedFiles;
+            document.getElementById('statTotalLines').textContent = totalLines.toLocaleString();
+            document.getElementById('statTotalChars').textContent = totalChars.toLocaleString();
         }
 
         // 파일 아이콘 가져오기
@@ -401,7 +788,9 @@
 
             tabs.push(newTab);
             renderTabs();
+            renderFileList();
             switchTab(tabId);
+            updateStats();
         }
 
         // 탭 렌더링
@@ -415,6 +804,8 @@
                 </div>
             `).join('');
 
+            renderFileList();
+            updateStats();
             updateButtons();
         }
 
@@ -435,6 +826,10 @@
                 document.getElementById('editor').value = tab.content;
                 document.getElementById('statusFileName').textContent = tab.name;
                 updateStatusBar();
+                
+                // 검색 초기화
+                document.getElementById('searchInput').value = '';
+                document.getElementById('searchResults').innerHTML = '';
             }
 
             renderTabs();
@@ -552,6 +947,12 @@
                 }
             }
             updateStatusBar();
+            updateStats();
+            
+            // 검색 중이면 자동 재검색
+            if (document.getElementById('searchInput').value) {
+                performSearch();
+            }
         });
 
         // 상태바 업데이트
@@ -577,8 +978,13 @@
 
         // 단축키
         document.addEventListener('keydown', (e) => {
+            // Ctrl+N / Cmd+N: 새 파일
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                e.preventDefault();
+                createNewFile();
+            }
             // Ctrl+S / Cmd+S: 저장
-            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            else if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                 e.preventDefault();
                 saveFile();
             }
@@ -592,9 +998,16 @@
                 e.preventDefault();
                 openFiles();
             }
+            // Ctrl+F / Cmd+F: 검색에 포커스
+            else if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
         });
 
         // 초기화
+        renderFileList();
+        updateStats();
         updateButtons();
     </script>
 </body>
