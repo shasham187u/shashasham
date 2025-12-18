@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Tab Editor</title>
+    <title>고급 텍스트 편집기</title>
     <style>
         * {
             margin: 0;
@@ -12,149 +12,147 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
             background: #1e1e1e;
             color: #d4d4d4;
-            height: 100vh;
             overflow: hidden;
+            height: 100vh;
         }
 
-        .app-container {
+        #app {
             display: flex;
             flex-direction: column;
             height: 100vh;
         }
 
-        /* 헤더 */
-        .header {
+        /* 툴바 */
+        .toolbar {
             background: #2d2d30;
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
             border-bottom: 1px solid #3e3e42;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .logo {
-            font-size: 20px;
-            font-weight: 700;
-            color: #00d084;
-        }
-
-        .button-group {
+            padding: 8px 12px;
             display: flex;
             gap: 8px;
-        }
-
-        button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
             align-items: center;
-            gap: 6px;
-            background: #3e3e42;
-            color: #cccccc;
+            flex-wrap: wrap;
         }
 
-        button:hover {
-            background: #4e4e52;
-            transform: translateY(-1px);
+        .toolbar-group {
+            display: flex;
+            gap: 4px;
+            padding: 0 8px;
+            border-right: 1px solid #3e3e42;
+        }
+
+        .toolbar-group:last-child {
+            border-right: none;
+            margin-left: auto;
+        }
+
+        button, select {
+            background: #3e3e42;
+            color: #d4d4d4;
+            border: 1px solid #555;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        button:hover, select:hover {
+            background: #505053;
+            border-color: #777;
         }
 
         button:active {
-            transform: translateY(0);
-        }
-
-        .btn-primary {
-            background: #00d084;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #00b872;
-        }
-
-        .btn-danger {
-            background: #f48771;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #e06d57;
-        }
-
-        button:disabled {
             background: #2d2d30;
-            color: #6e6e6e;
-            cursor: not-allowed;
-            transform: none;
         }
 
-        /* 사이드바 */
-        .main-content {
+        button.active {
+            background: #0e639c;
+            border-color: #1177bb;
+        }
+
+        select {
+            padding: 5px 8px;
+        }
+
+        input[type="number"] {
+            width: 60px;
+            background: #3e3e42;
+            color: #d4d4d4;
+            border: 1px solid #555;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        input[type="color"] {
+            width: 40px;
+            height: 32px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #3e3e42;
+        }
+
+        /* 메인 컨테이너 */
+        .main-container {
             display: flex;
             flex: 1;
             overflow: hidden;
         }
 
+        /* 사이드바 - 파일 목록 */
         .sidebar {
             width: 250px;
             background: #252526;
             border-right: 1px solid #3e3e42;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
         .sidebar-header {
-            padding: 12px 16px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            color: #999;
-            letter-spacing: 0.5px;
+            padding: 12px;
             background: #2d2d30;
+            border-bottom: 1px solid #3e3e42;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .recent-files {
+        .file-list {
             flex: 1;
             overflow-y: auto;
+            padding: 8px;
         }
 
-        .recent-file-item {
-            padding: 10px 16px;
+        .file-item {
+            padding: 8px 12px;
+            margin: 2px 0;
+            border-radius: 4px;
             cursor: pointer;
-            border-left: 2px solid transparent;
-            transition: all 0.2s ease;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 8px;
+            transition: background 0.2s;
             font-size: 13px;
         }
 
-        .recent-file-item:hover {
-            background: #2a2d2e;
-            border-left-color: #00d084;
+        .file-item:hover {
+            background: #2d2d30;
         }
 
-        .recent-file-item.active {
-            background: #37373d;
-            border-left-color: #00d084;
+        .file-item.active {
+            background: #094771;
         }
 
-        .file-icon {
-            font-size: 16px;
+        .file-item.modified::after {
+            content: '●';
+            color: #ffa500;
+            margin-left: 8px;
         }
 
         .file-name {
@@ -164,16 +162,25 @@
             white-space: nowrap;
         }
 
-        .file-time {
-            font-size: 11px;
-            color: #858585;
+        .close-file {
+            background: none;
+            border: none;
+            color: #888;
+            padding: 2px 6px;
+            font-size: 16px;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.2s;
         }
 
-        .empty-state {
-            padding: 20px;
-            text-align: center;
-            color: #858585;
-            font-size: 13px;
+        .file-item:hover .close-file {
+            opacity: 1;
+        }
+
+        .close-file:hover {
+            color: #d4d4d4;
+            background: #555;
+            border-radius: 3px;
         }
 
         /* 에디터 영역 */
@@ -184,130 +191,228 @@
             overflow: hidden;
         }
 
-        .tabs-container {
-            display: flex;
+        .tabs {
             background: #2d2d30;
             border-bottom: 1px solid #3e3e42;
+            display: flex;
             overflow-x: auto;
-            overflow-y: hidden;
-        }
-
-        .tabs-container::-webkit-scrollbar {
-            height: 4px;
-        }
-
-        .tabs-container::-webkit-scrollbar-thumb {
-            background: #4e4e52;
-            border-radius: 2px;
+            padding: 0 8px;
         }
 
         .tab {
+            padding: 10px 16px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 10px 16px;
-            background: #2d2d30;
-            border-right: 1px solid #3e3e42;
-            cursor: pointer;
-            transition: background 0.2s ease;
-            min-width: 120px;
-            max-width: 200px;
-            position: relative;
             white-space: nowrap;
+            font-size: 13px;
+            transition: all 0.2s;
         }
 
         .tab:hover {
-            background: #37373d;
+            background: #383838;
         }
 
         .tab.active {
             background: #1e1e1e;
-            border-top: 2px solid #00d084;
-            padding-top: 8px;
-        }
-
-        .tab-name {
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-size: 13px;
+            border-bottom-color: #0e639c;
         }
 
         .tab.modified .tab-name::after {
-            content: " •";
-            color: #00d084;
+            content: '●';
+            color: #ffa500;
+            margin-left: 6px;
         }
 
         .tab-close {
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-            font-size: 16px;
-            color: #858585;
-            transition: all 0.2s ease;
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            padding: 2px 4px;
+            font-size: 14px;
+            transition: all 0.2s;
         }
 
         .tab-close:hover {
-            background: #4e4e52;
-            color: #cccccc;
+            color: #d4d4d4;
+            background: #555;
+            border-radius: 3px;
         }
 
-        .editor-area {
+        .editor-wrapper {
             flex: 1;
             display: flex;
-            flex-direction: column;
-            background: #1e1e1e;
+            position: relative;
+            overflow: hidden;
         }
 
-        textarea {
+        /* 라인 넘버 */
+        .line-numbers {
+            background: #1e1e1e;
+            color: #858585;
+            padding: 12px 8px;
+            text-align: right;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            user-select: none;
+            border-right: 1px solid #3e3e42;
+            overflow: hidden;
+            min-width: 50px;
+        }
+
+        .editor {
             flex: 1;
-            padding: 20px;
-            border: none;
+            padding: 12px;
             background: #1e1e1e;
             color: #d4d4d4;
-            font-size: 14px;
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            resize: none;
+            font-size: 14px;
             line-height: 1.6;
-        }
-
-        textarea:focus {
+            border: none;
             outline: none;
-        }
-
-        textarea::selection {
-            background: #264f78;
+            resize: none;
+            overflow-y: auto;
+            white-space: pre;
+            overflow-wrap: normal;
+            tab-size: 4;
         }
 
         /* 상태바 */
-        .status-bar {
+        .statusbar {
+            background: #007acc;
+            color: white;
+            padding: 6px 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 4px 16px;
-            background: #007acc;
-            color: white;
             font-size: 12px;
         }
 
-        .status-left, .status-right {
+        .statusbar-left, .statusbar-right {
             display: flex;
             gap: 16px;
         }
 
-        .warning {
-            background: #f48771;
-            padding: 12px 20px;
-            text-align: center;
+        /* 검색/바꾸기 패널 */
+        .search-panel {
+            background: #252526;
+            border-bottom: 1px solid #3e3e42;
+            padding: 12px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .search-panel.active {
+            display: flex;
+        }
+
+        .search-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            background: #3c3c3c;
+            color: #d4d4d4;
+            border: 1px solid #555;
+            padding: 6px 10px;
+            border-radius: 4px;
             font-size: 13px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #0e639c;
+        }
+
+        /* 설정 패널 */
+        .settings-panel {
+            position: absolute;
+            top: 50px;
+            right: 20px;
+            background: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 6px;
+            padding: 16px;
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            min-width: 300px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .settings-panel.active {
+            display: flex;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .setting-label {
+            font-size: 13px;
+        }
+
+        /* 컨텍스트 메뉴 */
+        .context-menu {
+            position: absolute;
+            background: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            padding: 4px 0;
+            display: none;
+            z-index: 2000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            min-width: 180px;
+        }
+
+        .context-menu.active {
+            display: block;
+        }
+
+        .context-menu-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .context-menu-item:hover {
+            background: #094771;
+        }
+
+        .context-menu-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .context-menu-item.disabled:hover {
+            background: transparent;
+        }
+
+        .shortcut {
+            color: #888;
+            font-size: 11px;
+            margin-left: 16px;
         }
 
         /* 스크롤바 커스터마이징 */
         ::-webkit-scrollbar {
-            width: 10px;
+            width: 12px;
+            height: 12px;
         }
 
         ::-webkit-scrollbar-track {
@@ -316,446 +421,1381 @@
 
         ::-webkit-scrollbar-thumb {
             background: #424242;
-            border-radius: 5px;
+            border-radius: 6px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
             background: #4e4e4e;
         }
 
+        /* 환영 화면 */
+        .welcome-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: #888;
+            font-size: 14px;
+            gap: 20px;
+        }
+
+        .welcome-screen h2 {
+            font-size: 24px;
+            color: #d4d4d4;
+        }
+
+        .welcome-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* 통계 패널 */
+        .stats-panel {
+            position: absolute;
+            bottom: 40px;
+            right: 20px;
+            background: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 6px;
+            padding: 16px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 250px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .stats-panel.active {
+            display: flex;
+        }
+
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        .stats-label {
+            color: #888;
+        }
+
+        .stats-value {
+            color: #d4d4d4;
+            font-weight: bold;
+        }
+
+        /* 로딩 인디케이터 */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #888;
+            font-size: 14px;
+        }
+
+        /* 반응형 */
         @media (max-width: 768px) {
             .sidebar {
                 width: 200px;
             }
-
-            .header-left {
-                gap: 8px;
+            
+            .toolbar-group {
+                padding: 0 4px;
             }
-
-            .button-group {
-                gap: 4px;
-            }
-
-            button {
-                padding: 6px 12px;
+            
+            button, select {
+                padding: 4px 8px;
                 font-size: 12px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <div class="warning" id="warningBox" style="display: none;">
-            ⚠️ 이 브라우저는 File System Access API를 지원하지 않습니다. Chrome, Edge 등의 최신 브라우저를 사용해주세요.
-        </div>
-
-        <div class="header">
-            <div class="header-left">
-                <div class="logo">📝 Editor</div>
-                <div class="button-group">
-                    <button class="btn-primary" onclick="openFiles()">
-                        📂 열기
-                    </button>
-                    <button onclick="saveFile()" id="saveBtn" disabled>
-                        💾 저장
-                    </button>
-                    <button onclick="saveFileAs()">
-                        💾 다른 이름으로
-                    </button>
-                    <button class="btn-danger" onclick="closeCurrentTab()" id="closeBtn" disabled>
-                        ✕ 닫기
-                    </button>
-                </div>
+    <div id="app">
+        <!-- 툴바 -->
+        <div class="toolbar">
+            <div class="toolbar-group">
+                <button onclick="editor.openFile()" title="파일 열기 (Ctrl+O)">📁 열기</button>
+                <button onclick="editor.openMultipleFiles()" title="여러 파일 열기">📂 다중 열기</button>
+                <button onclick="editor.openFolder()" title="폴더 열기">📂 폴더</button>
+                <button onclick="editor.saveFile()" title="저장 (Ctrl+S)">💾 저장</button>
+                <button onclick="editor.saveAs()" title="다른 이름으로 저장 (Ctrl+Shift+S)">💾 다른 이름</button>
+                <button onclick="editor.saveAll()" title="모두 저장">💾 모두 저장</button>
+            </div>
+            
+            <div class="toolbar-group">
+                <button onclick="editor.undo()" title="실행 취소 (Ctrl+Z)">↶</button>
+                <button onclick="editor.redo()" title="다시 실행 (Ctrl+Y)">↷</button>
+            </div>
+            
+            <div class="toolbar-group">
+                <button onclick="editor.cut()" title="잘라내기 (Ctrl+X)">✂️</button>
+                <button onclick="editor.copy()" title="복사 (Ctrl+C)">📋</button>
+                <button onclick="editor.paste()" title="붙여넣기 (Ctrl+V)">📄</button>
+                <button onclick="editor.selectAll()" title="모두 선택 (Ctrl+A)">⬚</button>
+            </div>
+            
+            <div class="toolbar-group">
+                <button id="boldBtn" onclick="editor.formatText('bold')" title="굵게 (Ctrl+B)"><b>B</b></button>
+                <button id="italicBtn" onclick="editor.formatText('italic')" title="기울임 (Ctrl+I)"><i>I</i></button>
+                <button id="underlineBtn" onclick="editor.formatText('underline')" title="밑줄 (Ctrl+U)"><u>U</u></button>
+                <select onchange="editor.changeFontSize(this.value)">
+                    <option value="12">12px</option>
+                    <option value="14" selected>14px</option>
+                    <option value="16">16px</option>
+                    <option value="18">18px</option>
+                    <option value="20">20px</option>
+                    <option value="24">24px</option>
+                </select>
+            </div>
+            
+            <div class="toolbar-group">
+                <button onclick="editor.toggleSearch()" title="찾기 (Ctrl+F)">🔍 찾기</button>
+                <button onclick="editor.toggleReplace()" title="바꾸기 (Ctrl+H)">🔄 바꾸기</button>
+                <button onclick="editor.gotoLine()" title="줄 이동 (Ctrl+G)">➡️ 줄 이동</button>
+            </div>
+            
+            <div class="toolbar-group">
+                <button onclick="editor.indent()" title="들여쓰기 (Tab)">→</button>
+                <button onclick="editor.outdent()" title="내어쓰기 (Shift+Tab)">←</button>
+                <button onclick="editor.duplicateLine()" title="줄 복제 (Ctrl+D)">⎘</button>
+                <button onclick="editor.deleteLine()" title="줄 삭제 (Ctrl+Shift+K)">🗑️</button>
+                <button onclick="editor.moveLinesUp()" title="줄 위로 (Alt+↑)">↑</button>
+                <button onclick="editor.moveLinesDown()" title="줄 아래로 (Alt+↓)">↓</button>
+            </div>
+            
+            <div class="toolbar-group">
+                <button onclick="editor.toggleStats()" title="통계">📊</button>
+                <button onclick="editor.toggleSettings()" title="설정">⚙️</button>
             </div>
         </div>
 
-        <div class="main-content">
+        <!-- 검색/바꾸기 패널 -->
+        <div class="search-panel" id="searchPanel">
+            <div class="search-row">
+                <input type="text" class="search-input" id="searchInput" placeholder="찾기...">
+                <button onclick="editor.findNext()">다음 (F3)</button>
+                <button onclick="editor.findPrevious()">이전 (Shift+F3)</button>
+                <label><input type="checkbox" id="caseSensitive"> 대소문자 구분</label>
+                <label><input type="checkbox" id="useRegex"> 정규식</label>
+                <button onclick="editor.toggleSearch()">✕</button>
+            </div>
+            <div class="search-row" id="replaceRow" style="display: none;">
+                <input type="text" class="search-input" id="replaceInput" placeholder="바꿀 내용...">
+                <button onclick="editor.replace()">바꾸기</button>
+                <button onclick="editor.replaceAll()">모두 바꾸기</button>
+            </div>
+        </div>
+
+        <div class="main-container">
+            <!-- 사이드바 -->
             <div class="sidebar">
-                <div class="sidebar-header">최근 파일</div>
-                <div class="recent-files" id="recentFiles">
-                    <div class="empty-state">
-                        파일을 열어보세요
+                <div class="sidebar-header">
+                    <span>열린 파일</span>
+                    <button onclick="editor.closeAll()" style="padding: 4px 8px; font-size: 12px;">모두 닫기</button>
+                </div>
+                <div class="file-list" id="fileList"></div>
+            </div>
+
+            <!-- 에디터 영역 -->
+            <div class="editor-container">
+                <div class="tabs" id="tabs"></div>
+                <div class="editor-wrapper" id="editorWrapper">
+                    <div class="welcome-screen">
+                        <h2>고급 텍스트 편집기</h2>
+                        <p>파일을 열어 편집을 시작하세요</p>
+                        <div class="welcome-actions">
+                            <button onclick="editor.openFile()">📁 파일 열기</button>
+                            <button onclick="editor.openMultipleFiles()">📂 여러 파일 열기</button>
+                            <button onclick="editor.openFolder()">📂 폴더 열기</button>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="editor-container">
-                <div class="tabs-container" id="tabsContainer"></div>
-                <div class="editor-area">
-                    <textarea id="editor" placeholder="파일을 열거나 내용을 입력하세요..."></textarea>
-                </div>
-                <div class="status-bar">
-                    <div class="status-left">
-                        <span id="statusFileName">파일 없음</span>
-                        <span id="statusModified"></span>
-                    </div>
-                    <div class="status-right">
-                        <span id="statusLines">줄: 1</span>
-                        <span id="statusChars">문자: 0</span>
-                    </div>
-                </div>
+        <!-- 상태바 -->
+        <div class="statusbar">
+            <div class="statusbar-left">
+                <span id="fileInfo">파일 없음</span>
+                <span id="encoding">UTF-8</span>
+            </div>
+            <div class="statusbar-right">
+                <span id="cursorPosition">줄 0, 열 0</span>
+                <span id="selection">선택 0</span>
+                <span id="fileSize">0 bytes</span>
+            </div>
+        </div>
+
+        <!-- 설정 패널 -->
+        <div class="settings-panel" id="settingsPanel">
+            <h3>설정</h3>
+            <div class="setting-item">
+                <span class="setting-label">줄 번호 표시</span>
+                <input type="checkbox" id="showLineNumbers" checked onchange="editor.updateSettings()">
+            </div>
+            <div class="setting-item">
+                <span class="setting-label">자동 저장</span>
+                <input type="checkbox" id="autoSave" onchange="editor.updateSettings()">
+            </div>
+            <div class="setting-item">
+                <span class="setting-label">탭 크기</span>
+                <input type="number" id="tabSize" value="4" min="1" max="8" onchange="editor.updateSettings()">
+            </div>
+            <div class="setting-item">
+                <span class="setting-label">자동 줄 바꿈</span>
+                <input type="checkbox" id="wordWrap" onchange="editor.updateSettings()">
+            </div>
+            <div class="setting-item">
+                <span class="setting-label">테마</span>
+                <select id="theme" onchange="editor.changeTheme(this.value)">
+                    <option value="dark" selected>Dark</option>
+                    <option value="light">Light</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 통계 패널 -->
+        <div class="stats-panel" id="statsPanel">
+            <h3>문서 통계</h3>
+            <div class="stats-item">
+                <span class="stats-label">문자 수:</span>
+                <span class="stats-value" id="charCount">0</span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-label">공백 제외:</span>
+                <span class="stats-value" id="charNoSpace">0</span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-label">단어 수:</span>
+                <span class="stats-value" id="wordCount">0</span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-label">줄 수:</span>
+                <span class="stats-value" id="lineCount">0</span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-label">선택된 문자:</span>
+                <span class="stats-value" id="selectedChars">0</span>
+            </div>
+        </div>
+
+        <!-- 컨텍스트 메뉴 -->
+        <div class="context-menu" id="contextMenu">
+            <div class="context-menu-item" onclick="editor.cut()">
+                잘라내기 <span class="shortcut">Ctrl+X</span>
+            </div>
+            <div class="context-menu-item" onclick="editor.copy()">
+                복사 <span class="shortcut">Ctrl+C</span>
+            </div>
+            <div class="context-menu-item" onclick="editor.paste()">
+                붙여넣기 <span class="shortcut">Ctrl+V</span>
+            </div>
+            <div class="context-menu-item" onclick="editor.selectAll()">
+                모두 선택 <span class="shortcut">Ctrl+A</span>
+            </div>
+            <hr style="margin: 4px 0; border: none; border-top: 1px solid #3e3e42;">
+            <div class="context-menu-item" onclick="editor.undo()">
+                실행 취소 <span class="shortcut">Ctrl+Z</span>
+            </div>
+            <div class="context-menu-item" onclick="editor.redo()">
+                다시 실행 <span class="shortcut">Ctrl+Y</span>
+            </div>
+            <hr style="margin: 4px 0; border: none; border-top: 1px solid #3e3e42;">
+            <div class="context-menu-item" onclick="editor.duplicateLine()">
+                줄 복제 <span class="shortcut">Ctrl+D</span>
+            </div>
+            <div class="context-menu-item" onclick="editor.deleteLine()">
+                줄 삭제 <span class="shortcut">Ctrl+Shift+K</span>
             </div>
         </div>
     </div>
 
     <script>
-        // 전역 상태
-        let tabs = [];
-        let activeTabId = null;
-        let recentFiles = [];
-
-        // File System Access API 지원 확인
-        if (!('showOpenFilePicker' in window)) {
-            document.getElementById('warningBox').style.display = 'block';
-        }
-
-        // 로컬 스토리지에서 최근 파일 불러오기
-        function loadRecentFiles() {
-            const stored = localStorage.getItem('recentFiles');
-            if (stored) {
-                recentFiles = JSON.parse(stored);
-                renderRecentFiles();
-            }
-        }
-
-        // 최근 파일 저장
-        function saveRecentFiles() {
-            localStorage.setItem('recentFiles', JSON.stringify(recentFiles));
-        }
-
-        // 최근 파일에 추가
-        function addToRecentFiles(fileName, filePath) {
-            const existing = recentFiles.findIndex(f => f.path === filePath);
-            if (existing !== -1) {
-                recentFiles.splice(existing, 1);
-            }
-            
-            recentFiles.unshift({
-                name: fileName,
-                path: filePath,
-                time: new Date().toISOString()
-            });
-
-            if (recentFiles.length > 20) {
-                recentFiles = recentFiles.slice(0, 20);
+        class TextEditor {
+            constructor() {
+                this.files = [];
+                this.currentFileIndex = -1;
+                this.undoStack = new Map();
+                this.redoStack = new Map();
+                this.searchResults = [];
+                this.currentSearchIndex = -1;
+                this.autoSaveInterval = null;
+                
+                this.init();
             }
 
-            saveRecentFiles();
-            renderRecentFiles();
-        }
-
-        // 최근 파일 렌더링
-        function renderRecentFiles() {
-            const container = document.getElementById('recentFiles');
-            
-            if (recentFiles.length === 0) {
-                container.innerHTML = '<div class="empty-state">파일을 열어보세요</div>';
-                return;
+            init() {
+                this.setupEventListeners();
+                this.checkFileSystemSupport();
             }
 
-            container.innerHTML = recentFiles.map((file, index) => {
-                const timeAgo = getTimeAgo(new Date(file.time));
-                const icon = getFileIcon(file.name);
-                return `
-                    <div class="recent-file-item" onclick="openRecentFile(${index})" title="${file.path}">
-                        <span class="file-icon">${icon}</span>
-                        <span class="file-name">${file.name}</span>
-                        <span class="file-time">${timeAgo}</span>
-                    </div>
-                `;
-            }).join('');
-        }
+            checkFileSystemSupport() {
+                if (!('showOpenFilePicker' in window)) {
+                    alert('이 브라우저는 File System Access API를 지원하지 않습니다. Chrome, Edge 등 최신 브라우저를 사용해주세요.');
+                }
+            }
 
-        // 파일 아이콘 가져오기
-        function getFileIcon(fileName) {
-            const ext = fileName.split('.').pop().toLowerCase();
-            const icons = {
-                'js': '📜',
-                'json': '📋',
-                'html': '🌐',
-                'css': '🎨',
-                'txt': '📄',
-                'md': '📝',
-                'py': '🐍',
-                'java': '☕',
-            };
-            return icons[ext] || '📄';
-        }
+            setupEventListeners() {
+                // 키보드 단축키
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey || e.metaKey) {
+                        switch(e.key.toLowerCase()) {
+                            case 'o':
+                                e.preventDefault();
+                                this.openFile();
+                                break;
+                            case 's':
+                                e.preventDefault();
+                                if (e.shiftKey) {
+                                    this.saveAs();
+                                } else {
+                                    this.saveFile();
+                                }
+                                break;
+                            case 'f':
+                                e.preventDefault();
+                                this.toggleSearch();
+                                break;
+                            case 'h':
+                                e.preventDefault();
+                                this.toggleReplace();
+                                break;
+                            case 'g':
+                                e.preventDefault();
+                                this.gotoLine();
+                                break;
+                            case 'd':
+                                e.preventDefault();
+                                this.duplicateLine();
+                                break;
+                            case 'z':
+                                e.preventDefault();
+                                this.undo();
+                                break;
+                            case 'y':
+                                e.preventDefault();
+                                this.redo();
+                                break;
+                        }
+                        
+                        if (e.shiftKey && e.key.toLowerCase() === 'k') {
+                            e.preventDefault();
+                            this.deleteLine();
+                        }
+                    }
+                    
+                    if (e.altKey) {
+                        if (e.key === 'ArrowUp') {
+                            e.preventDefault();
+                            this.moveLinesUp();
+                        } else if (e.key === 'ArrowDown') {
+                            e.preventDefault();
+                            this.moveLinesDown();
+                        }
+                    }
+                    
+                    if (e.key === 'F3') {
+                        e.preventDefault();
+                        if (e.shiftKey) {
+                            this.findPrevious();
+                        } else {
+                            this.findNext();
+                        }
+                    }
+                    
+                    if (e.key === 'Tab') {
+                        e.preventDefault();
+                        if (e.shiftKey) {
+                            this.outdent();
+                        } else {
+                            this.indent();
+                        }
+                    }
+                });
 
-        // 시간 계산
-        function getTimeAgo(date) {
-            const seconds = Math.floor((new Date() - date) / 1000);
-            
-            if (seconds < 60) return '방금 전';
-            if (seconds < 3600) return `${Math.floor(seconds / 60)}분 전`;
-            if (seconds < 86400) return `${Math.floor(seconds / 3600)}시간 전`;
-            if (seconds < 2592000) return `${Math.floor(seconds / 86400)}일 전`;
-            return date.toLocaleDateString('ko-KR');
-        }
+                // 컨텍스트 메뉴
+                document.addEventListener('contextmenu', (e) => {
+                    const target = e.target;
+                    if (target.classList.contains('editor')) {
+                        e.preventDefault();
+                        this.showContextMenu(e.clientX, e.clientY);
+                    }
+                });
 
-        // 최근 파일 열기
-        async function openRecentFile(index) {
-            const file = recentFiles[index];
-            // 실제로는 파일 핸들을 저장할 수 없으므로, 사용자에게 다시 선택하도록 안내
-            alert(`"${file.name}" 파일을 다시 선택해주세요.\n\n파일 경로: ${file.path}`);
-            openFiles();
-        }
+                document.addEventListener('click', () => {
+                    this.hideContextMenu();
+                    document.getElementById('settingsPanel').classList.remove('active');
+                    document.getElementById('statsPanel').classList.remove('active');
+                });
 
-        // 파일 열기 (여러 개 가능)
-        async function openFiles() {
-            try {
-                const handles = await window.showOpenFilePicker({
-                    types: [
-                        {
-                            description: '텍스트 파일',
-                            accept: {
-                                'text/plain': ['.txt', '.md'],
-                                'text/html': ['.html', '.htm'],
-                                'text/css': ['.css'],
-                                'text/javascript': ['.js'],
-                                'application/json': ['.json'],
-                                'text/x-python': ['.py'],
-                                'text/x-java': ['.java'],
+                // 드래그 앤 드롭
+                const editorWrapper = document.getElementById('editorWrapper');
+                editorWrapper.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+
+                editorWrapper.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const files = Array.from(e.dataTransfer.files);
+                    for (const file of files) {
+                        if (file.type.startsWith('text/') || file.name.match(/\.(txt|js|html|css|json|md|xml|csv)$/i)) {
+                            await this.loadDroppedFile(file);
+                        }
+                    }
+                });
+
+                // 페이지 떠날 때 경고
+                window.addEventListener('beforeunload', (e) => {
+                    const hasUnsaved = this.files.some(f => f.modified);
+                    if (hasUnsaved) {
+                        e.preventDefault();
+                        e.returnValue = '';
+                    }
+                });
+            }
+
+            async openFile() {
+                try {
+                    const [fileHandle] = await window.showOpenFilePicker({
+                        types: [
+                            {
+                                description: '텍스트 파일',
+                                accept: {
+                                    'text/*': ['.txt', '.js', '.html', '.css', '.json', '.md', '.xml', '.csv', '.py', '.java', '.cpp', '.c', '.h']
+                                }
+                            }
+                        ],
+                        multiple: false
+                    });
+
+                    await this.loadFile(fileHandle);
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        console.error('파일 열기 오류:', err);
+                    }
+                }
+            }
+
+            async openMultipleFiles() {
+                try {
+                    const fileHandles = await window.showOpenFilePicker({
+                        types: [
+                            {
+                                description: '텍스트 파일',
+                                accept: {
+                                    'text/*': ['.txt', '.js', '.html', '.css', '.json', '.md', '.xml', '.csv', '.py', '.java', '.cpp', '.c', '.h']
+                                }
+                            }
+                        ],
+                        multiple: true
+                    });
+
+                    for (const fileHandle of fileHandles) {
+                        await this.loadFile(fileHandle);
+                    }
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        console.error('파일 열기 오류:', err);
+                    }
+                }
+            }
+
+            async openFolder() {
+                try {
+                    const dirHandle = await window.showDirectoryPicker();
+                    
+                    for await (const entry of dirHandle.values()) {
+                        if (entry.kind === 'file') {
+                            const file = await entry.getFile();
+                            if (file.type.startsWith('text/') || file.name.match(/\.(txt|js|html|css|json|md|xml|csv|py|java|cpp|c|h)$/i)) {
+                                await this.loadFile(entry);
                             }
                         }
-                    ],
-                    multiple: true
-                });
-
-                for (const handle of handles) {
-                    await openFileHandle(handle);
-                }
-            } catch (err) {
-                if (err.name !== 'AbortError') {
-                    console.error('파일 열기 실패:', err);
-                    alert('파일을 열 수 없습니다: ' + err.message);
-                }
-            }
-        }
-
-        // 파일 핸들로 파일 열기
-        async function openFileHandle(handle) {
-            const file = await handle.getFile();
-            const contents = await file.text();
-            
-            // 이미 열려있는 파일인지 확인
-            const existingTab = tabs.find(tab => tab.name === file.name);
-            if (existingTab) {
-                switchTab(existingTab.id);
-                return;
-            }
-
-            // 새 탭 생성
-            const tabId = Date.now() + Math.random();
-            const newTab = {
-                id: tabId,
-                name: file.name,
-                content: contents,
-                fileHandle: handle,
-                modified: false,
-                originalContent: contents
-            };
-
-            tabs.push(newTab);
-            addToRecentFiles(file.name, file.name); // 실제로는 전체 경로를 저장해야 함
-            renderTabs();
-            switchTab(tabId);
-        }
-
-        // 탭 렌더링
-        function renderTabs() {
-            const container = document.getElementById('tabsContainer');
-            container.innerHTML = tabs.map(tab => `
-                <div class="tab ${tab.id === activeTabId ? 'active' : ''} ${tab.modified ? 'modified' : ''}" 
-                     onclick="switchTab(${tab.id})">
-                    <span class="tab-name">${tab.name}</span>
-                    <span class="tab-close" onclick="event.stopPropagation(); closeTab(${tab.id})">×</span>
-                </div>
-            `).join('');
-
-            updateButtons();
-        }
-
-        // 탭 전환
-        function switchTab(tabId) {
-            // 현재 탭 내용 저장
-            if (activeTabId !== null) {
-                const currentTab = tabs.find(t => t.id === activeTabId);
-                if (currentTab) {
-                    currentTab.content = document.getElementById('editor').value;
+                    }
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        console.error('폴더 열기 오류:', err);
+                    }
                 }
             }
 
-            activeTabId = tabId;
-            const tab = tabs.find(t => t.id === tabId);
-            
-            if (tab) {
-                document.getElementById('editor').value = tab.content;
-                document.getElementById('statusFileName').textContent = tab.name;
-                updateStatusBar();
-            }
-
-            renderTabs();
-        }
-
-        // 탭 닫기
-        function closeTab(tabId) {
-            const tab = tabs.find(t => t.id === tabId);
-            
-            if (tab && tab.modified) {
-                if (!confirm(`"${tab.name}" 파일이 수정되었습니다. 닫으시겠습니까?`)) {
+            async loadFile(fileHandle) {
+                const file = await fileHandle.getFile();
+                const content = await file.text();
+                
+                // 이미 열린 파일인지 확인
+                const existingIndex = this.files.findIndex(f => f.handle === fileHandle);
+                if (existingIndex !== -1) {
+                    this.switchToFile(existingIndex);
                     return;
                 }
-            }
 
-            tabs = tabs.filter(t => t.id !== tabId);
+                const fileData = {
+                    handle: fileHandle,
+                    name: file.name,
+                    content: content,
+                    originalContent: content,
+                    modified: false,
+                    size: file.size
+                };
 
-            if (activeTabId === tabId) {
-                if (tabs.length > 0) {
-                    switchTab(tabs[tabs.length - 1].id);
-                } else {
-                    activeTabId = null;
-                    document.getElementById('editor').value = '';
-                    document.getElementById('statusFileName').textContent = '파일 없음';
-                }
-            }
-
-            renderTabs();
-        }
-
-        // 현재 탭 닫기
-        function closeCurrentTab() {
-            if (activeTabId !== null) {
-                closeTab(activeTabId);
-            }
-        }
-
-        // 저장
-        async function saveFile() {
-            if (activeTabId === null) return;
-
-            const tab = tabs.find(t => t.id === activeTabId);
-            if (!tab || !tab.fileHandle) {
-                await saveFileAs();
-                return;
-            }
-
-            try {
-                const writable = await tab.fileHandle.createWritable();
-                const content = document.getElementById('editor').value;
-                await writable.write(content);
-                await writable.close();
-
-                tab.content = content;
-                tab.originalContent = content;
-                tab.modified = false;
-                renderTabs();
+                this.files.push(fileData);
+                this.undoStack.set(this.files.length - 1, []);
+                this.redoStack.set(this.files.length - 1, []);
                 
-                console.log('저장 완료:', tab.name);
-            } catch (err) {
-                console.error('저장 실패:', err);
-                alert('파일을 저장할 수 없습니다: ' + err.message);
+                this.currentFileIndex = this.files.length - 1;
+                this.renderUI();
+                this.updateStatusBar();
             }
-        }
 
-        // 다른 이름으로 저장
-        async function saveFileAs() {
-            if (activeTabId === null) return;
+            async loadDroppedFile(file) {
+                const content = await file.text();
+                
+                const fileData = {
+                    handle: null,
+                    name: file.name,
+                    content: content,
+                    originalContent: content,
+                    modified: false,
+                    size: file.size
+                };
 
-            try {
-                const handle = await window.showSaveFilePicker({
-                    suggestedName: tabs.find(t => t.id === activeTabId)?.name || 'untitled.txt',
-                    types: [
-                        {
-                            description: '텍스트 파일',
-                            accept: { 'text/plain': ['.txt'] }
+                this.files.push(fileData);
+                this.undoStack.set(this.files.length - 1, []);
+                this.redoStack.set(this.files.length - 1, []);
+                
+                this.currentFileIndex = this.files.length - 1;
+                this.renderUI();
+                this.updateStatusBar();
+            }
+
+            renderUI() {
+                this.renderTabs();
+                this.renderFileList();
+                this.renderEditor();
+            }
+
+            renderTabs() {
+                const tabsContainer = document.getElementById('tabs');
+                tabsContainer.innerHTML = '';
+
+                this.files.forEach((file, index) => {
+                    const tab = document.createElement('div');
+                    tab.className = `tab ${index === this.currentFileIndex ? 'active' : ''} ${file.modified ? 'modified' : ''}`;
+                    tab.innerHTML = `
+                        <span class="tab-name">${file.name}</span>
+                        <button class="tab-close" onclick="editor.closeFile(${index}, event)">✕</button>
+                    `;
+                    tab.onclick = (e) => {
+                        if (!e.target.classList.contains('tab-close')) {
+                            this.switchToFile(index);
                         }
-                    ]
+                    };
+                    tabsContainer.appendChild(tab);
+                });
+            }
+
+            renderFileList() {
+                const fileList = document.getElementById('fileList');
+                fileList.innerHTML = '';
+
+                this.files.forEach((file, index) => {
+                    const item = document.createElement('div');
+                    item.className = `file-item ${index === this.currentFileIndex ? 'active' : ''} ${file.modified ? 'modified' : ''}`;
+                    item.innerHTML = `
+                        <span class="file-name" title="${file.name}">${file.name}</span>
+                        <button class="close-file" onclick="editor.closeFile(${index}, event)">✕</button>
+                    `;
+                    item.onclick = (e) => {
+                        if (!e.target.classList.contains('close-file')) {
+                            this.switchToFile(index);
+                        }
+                    };
+                    fileList.appendChild(item);
+                });
+            }
+
+            renderEditor() {
+                const wrapper = document.getElementById('editorWrapper');
+                
+                if (this.currentFileIndex === -1) {
+                    wrapper.innerHTML = `
+                        <div class="welcome-screen">
+                            <h2>고급 텍스트 편집기</h2>
+                            <p>파일을 열어 편집을 시작하세요</p>
+                            <div class="welcome-actions">
+                                <button onclick="editor.openFile()">📁 파일 열기</button>
+                                <button onclick="editor.openMultipleFiles()">📂 여러 파일 열기</button>
+                                <button onclick="editor.openFolder()">📂 폴더 열기</button>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const file = this.files[this.currentFileIndex];
+                const lines = file.content.split('\n');
+                
+                wrapper.innerHTML = `
+                    <div class="line-numbers" id="lineNumbers"></div>
+                    <textarea class="editor" id="editor" spellcheck="false"></textarea>
+                `;
+
+                const editorEl = document.getElementById('editor');
+                editorEl.value = file.content;
+                
+                this.updateLineNumbers();
+                
+                editorEl.addEventListener('input', (e) => {
+                    this.handleInput(e);
                 });
 
-                const writable = await handle.createWritable();
-                const content = document.getElementById('editor').value;
-                await writable.write(content);
-                await writable.close();
+                editorEl.addEventListener('scroll', () => {
+                    const lineNumbers = document.getElementById('lineNumbers');
+                    if (lineNumbers) {
+                        lineNumbers.scrollTop = editorEl.scrollTop;
+                    }
+                });
 
-                const tab = tabs.find(t => t.id === activeTabId);
-                if (tab) {
-                    const file = await handle.getFile();
-                    tab.name = file.name;
-                    tab.fileHandle = handle;
-                    tab.content = content;
-                    tab.originalContent = content;
-                    tab.modified = false;
-                    addToRecentFiles(file.name, file.name);
-                    renderTabs();
-                    document.getElementById('statusFileName').textContent = file.name;
+                editorEl.addEventListener('keyup', () => {
+                    this.updateCursorPosition();
+                    this.updateStats();
+                });
+
+                editorEl.addEventListener('click', () => {
+                    this.updateCursorPosition();
+                    this.updateStats();
+                });
+
+                editorEl.addEventListener('select', () => {
+                    this.updateStats();
+                });
+
+                editorEl.focus();
+            }
+
+            updateLineNumbers() {
+                const editorEl = document.getElementById('editor');
+                const lineNumbers = document.getElementById('lineNumbers');
+                
+                if (!editorEl || !lineNumbers) return;
+                
+                const lines = editorEl.value.split('\n').length;
+                const numbers = Array.from({length: lines}, (_, i) => i + 1).join('\n');
+                lineNumbers.textContent = numbers;
+            }
+
+            handleInput(e) {
+                if (this.currentFileIndex === -1) return;
+
+                const file = this.files[this.currentFileIndex];
+                const newContent = e.target.value;
+
+                // Undo 스택에 추가
+                const undoStack = this.undoStack.get(this.currentFileIndex);
+                undoStack.push(file.content);
+                if (undoStack.length > 100) {
+                    undoStack.shift();
                 }
 
-                console.log('저장 완료');
-            } catch (err) {
-                if (err.name !== 'AbortError') {
-                    console.error('저장 실패:', err);
-                    alert('파일을 저장할 수 없습니다: ' + err.message);
+                // Redo 스택 초기화
+                this.redoStack.set(this.currentFileIndex, []);
+
+                file.content = newContent;
+                file.modified = file.content !== file.originalContent;
+
+                this.updateLineNumbers();
+                this.renderTabs();
+                this.renderFileList();
+                this.updateStatusBar();
+                this.updateStats();
+
+                // 자동 저장
+                if (document.getElementById('autoSave').checked) {
+                    clearTimeout(this.autoSaveTimeout);
+                    this.autoSaveTimeout = setTimeout(() => {
+                        this.saveFile();
+                    }, 2000);
                 }
+            }
+
+            switchToFile(index) {
+                if (index < 0 || index >= this.files.length) return;
+                
+                this.currentFileIndex = index;
+                this.renderUI();
+                this.updateStatusBar();
+                this.updateStats();
+            }
+
+            async closeFile(index, event) {
+                if (event) {
+                    event.stopPropagation();
+                }
+
+                const file = this.files[index];
+                
+                if (file.modified) {
+                    const confirm = window.confirm(`'${file.name}' 파일이 수정되었습니다. 저장하지 않고 닫으시겠습니까?`);
+                    if (!confirm) return;
+                }
+
+                this.files.splice(index, 1);
+                this.undoStack.delete(index);
+                this.redoStack.delete(index);
+
+                // 인덱스 재조정
+                const newUndoStack = new Map();
+                const newRedoStack = new Map();
+                this.undoStack.forEach((value, key) => {
+                    if (key < index) {
+                        newUndoStack.set(key, value);
+                    } else if (key > index) {
+                        newUndoStack.set(key - 1, value);
+                    }
+                });
+                this.redoStack.forEach((value, key) => {
+                    if (key < index) {
+                        newRedoStack.set(key, value);
+                    } else if (key > index) {
+                        newRedoStack.set(key - 1, value);
+                    }
+                });
+                this.undoStack = newUndoStack;
+                this.redoStack = newRedoStack;
+
+                if (this.currentFileIndex === index) {
+                    this.currentFileIndex = Math.min(index, this.files.length - 1);
+                } else if (this.currentFileIndex > index) {
+                    this.currentFileIndex--;
+                }
+
+                this.renderUI();
+                this.updateStatusBar();
+            }
+
+            closeAll() {
+                const hasUnsaved = this.files.some(f => f.modified);
+                if (hasUnsaved) {
+                    const confirm = window.confirm('수정된 파일이 있습니다. 저장하지 않고 모두 닫으시겠습니까?');
+                    if (!confirm) return;
+                }
+
+                this.files = [];
+                this.currentFileIndex = -1;
+                this.undoStack.clear();
+                this.redoStack.clear();
+                this.renderUI();
+                this.updateStatusBar();
+            }
+
+            async saveFile() {
+                if (this.currentFileIndex === -1) return;
+
+                const file = this.files[this.currentFileIndex];
+                
+                try {
+                    if (!file.handle) {
+                        await this.saveAs();
+                        return;
+                    }
+
+                    const writable = await file.handle.createWritable();
+                    await writable.write(file.content);
+                    await writable.close();
+
+                    file.originalContent = file.content;
+                    file.modified = false;
+                    
+                    this.renderTabs();
+                    this.renderFileList();
+                    this.updateStatusBar();
+                    
+                    this.showNotification('저장 완료');
+                } catch (err) {
+                    console.error('저장 오류:', err);
+                    alert('파일 저장에 실패했습니다.');
+                }
+            }
+
+            async saveAs() {
+                if (this.currentFileIndex === -1) return;
+
+                const file = this.files[this.currentFileIndex];
+                
+                try {
+                    const fileHandle = await window.showSaveFilePicker({
+                        suggestedName: file.name,
+                        types: [
+                            {
+                                description: '텍스트 파일',
+                                accept: {'text/plain': ['.txt']}
+                            }
+                        ]
+                    });
+
+                    const writable = await fileHandle.createWritable();
+                    await writable.write(file.content);
+                    await writable.close();
+
+                    file.handle = fileHandle;
+                    file.name = fileHandle.name;
+                    file.originalContent = file.content;
+                    file.modified = false;
+
+                    this.renderUI();
+                    this.updateStatusBar();
+                    
+                    this.showNotification('저장 완료');
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        console.error('저장 오류:', err);
+                        alert('파일 저장에 실패했습니다.');
+                    }
+                }
+            }
+
+            async saveAll() {
+                for (let i = 0; i < this.files.length; i++) {
+                    if (this.files[i].modified) {
+                        const prevIndex = this.currentFileIndex;
+                        this.currentFileIndex = i;
+                        await this.saveFile();
+                        this.currentFileIndex = prevIndex;
+                    }
+                }
+                this.showNotification('모든 파일 저장 완료');
+            }
+
+            undo() {
+                if (this.currentFileIndex === -1) return;
+                
+                const undoStack = this.undoStack.get(this.currentFileIndex);
+                if (undoStack.length === 0) return;
+
+                const file = this.files[this.currentFileIndex];
+                const redoStack = this.redoStack.get(this.currentFileIndex);
+                
+                redoStack.push(file.content);
+                file.content = undoStack.pop();
+                file.modified = file.content !== file.originalContent;
+
+                const editorEl = document.getElementById('editor');
+                if (editorEl) {
+                    const scrollTop = editorEl.scrollTop;
+                    editorEl.value = file.content;
+                    editorEl.scrollTop = scrollTop;
+                }
+
+                this.updateLineNumbers();
+                this.renderTabs();
+                this.renderFileList();
+                this.updateStatusBar();
+            }
+
+            redo() {
+                if (this.currentFileIndex === -1) return;
+                
+                const redoStack = this.redoStack.get(this.currentFileIndex);
+                if (redoStack.length === 0) return;
+
+                const file = this.files[this.currentFileIndex];
+                const undoStack = this.undoStack.get(this.currentFileIndex);
+                
+                undoStack.push(file.content);
+                file.content = redoStack.pop();
+                file.modified = file.content !== file.originalContent;
+
+                const editorEl = document.getElementById('editor');
+                if (editorEl) {
+                    const scrollTop = editorEl.scrollTop;
+                    editorEl.value = file.content;
+                    editorEl.scrollTop = scrollTop;
+                }
+
+                this.updateLineNumbers();
+                this.renderTabs();
+                this.renderFileList();
+                this.updateStatusBar();
+            }
+
+            cut() {
+                document.execCommand('cut');
+            }
+
+            copy() {
+                document.execCommand('copy');
+            }
+
+            paste() {
+                document.execCommand('paste');
+            }
+
+            selectAll() {
+                const editorEl = document.getElementById('editor');
+                if (editorEl) {
+                    editorEl.select();
+                }
+            }
+
+            formatText(format) {
+                const editorEl = document.getElementById('editor');
+                if (!editorEl) return;
+
+                const start = editorEl.selectionStart;
+                const end = editorEl.selectionEnd;
+                const selectedText = editorEl.value.substring(start, end);
+
+                if (!selectedText) return;
+
+                let formattedText = selectedText;
+                switch(format) {
+                    case 'bold':
+                        formattedText = `**${selectedText}**`;
+                        break;
+                    case 'italic':
+                        formattedText = `*${selectedText}*`;
+                        break;
+                    case 'underline':
+                        formattedText = `__${selectedText}__`;
+                        break;
+                }
+
+                editorEl.setRangeText(formattedText, start, end, 'end');
+                this.handleInput({target: editorEl});
+            }
+
+            changeFontSize(size) {
+                const editorEl = document.getElementById('editor');
+                if (editorEl) {
+                    editorEl.style.fontSize = size + 'px';
+                }
+            }
+
+            toggleSearch() {
+                const panel = document.getElementById('searchPanel');
+                const replaceRow = document.getElementById('replaceRow');
+                
+                panel.classList.toggle('active');
+                replaceRow.style.display = 'none';
+                
+                if (panel.classList.contains('active')) {
+                    document.getElementById('searchInput').focus();
+                }
+            }
+
+            toggleReplace() {
+                const panel = document.getElementById('searchPanel');
+                const replaceRow = document.getElementById('replaceRow');
+                
+                panel.classList.add('active');
+                replaceRow.style.display = 'flex';
+                document.getElementById('searchInput').focus();
+            }
+
+            findNext() {
+                const editorEl = document.getElementById('editor');
+                const searchInput = document.getElementById('searchInput');
+                
+                if (!editorEl || !searchInput.value) return;
+
+                const caseSensitive = document.getElementById('caseSensitive').checked;
+                const useRegex = document.getElementById('useRegex').checked;
+                
+                let searchTerm = searchInput.value;
+                let content = editorEl.value;
+                let startPos = editorEl.selectionEnd;
+
+                if (!caseSensitive && !useRegex) {
+                    searchTerm = searchTerm.toLowerCase();
+                    content = content.toLowerCase();
+                }
+
+                let index;
+                if (useRegex) {
+                    const regex = new RegExp(searchTerm, caseSensitive ? 'g' : 'gi');
+                    const match = content.substring(startPos).match(regex);
+                    index = match ? content.substring(startPos).search(regex) + startPos : -1;
+                } else {
+                    index = content.indexOf(searchTerm, startPos);
+                }
+
+                if (index === -1) {
+                    // 처음부터 다시 검색
+                    index = useRegex 
+                        ? content.search(new RegExp(searchTerm, caseSensitive ? '' : 'i'))
+                        : content.indexOf(searchTerm);
+                }
+
+                if (index !== -1) {
+                    editorEl.focus();
+                    editorEl.setSelectionRange(index, index + searchInput.value.length);
+                    editorEl.scrollTop = editorEl.scrollHeight * (index / content.length);
+                }
+            }
+
+            findPrevious() {
+                const editorEl = document.getElementById('editor');
+                const searchInput = document.getElementById('searchInput');
+                
+                if (!editorEl || !searchInput.value) return;
+
+                const caseSensitive = document.getElementById('caseSensitive').checked;
+                let searchTerm = searchInput.value;
+                let content = editorEl.value;
+                let startPos = editorEl.selectionStart - 1;
+
+                if (!caseSensitive) {
+                    searchTerm = searchTerm.toLowerCase();
+                    content = content.toLowerCase();
+                }
+
+                const index = content.lastIndexOf(searchTerm, startPos);
+
+                if (index !== -1) {
+                    editorEl.focus();
+                    editorEl.setSelectionRange(index, index + searchTerm.length);
+                    editorEl.scrollTop = editorEl.scrollHeight * (index / content.length);
+                }
+            }
+
+            replace() {
+                const editorEl = document.getElementById('editor');
+                const searchInput = document.getElementById('searchInput');
+                const replaceInput = document.getElementById('replaceInput');
+                
+                if (!editorEl || !searchInput.value) return;
+
+                const start = editorEl.selectionStart;
+                const end = editorEl.selectionEnd;
+                const selectedText = editorEl.value.substring(start, end);
+
+                if (selectedText.toLowerCase() === searchInput.value.toLowerCase()) {
+                    editorEl.setRangeText(replaceInput.value, start, end, 'end');
+                    this.handleInput({target: editorEl});
+                }
+
+                this.findNext();
+            }
+
+            replaceAll() {
+                const editorEl = document.getElementById('editor');
+                const searchInput = document.getElementById('searchInput');
+                const replaceInput = document.getElementById('replaceInput');
+                
+                if (!editorEl || !searchInput.value) return;
+
+                const caseSensitive = document.getElementById('caseSensitive').checked;
+                const useRegex = document.getElementById('useRegex').checked;
+
+                let newContent;
+                if (useRegex) {
+                    const regex = new RegExp(searchInput.value, caseSensitive ? 'g' : 'gi');
+                    newContent = editorEl.value.replace(regex, replaceInput.value);
+                } else {
+                    const regex = new RegExp(searchInput.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), caseSensitive ? 'g' : 'gi');
+                    newContent = editorEl.value.replace(regex, replaceInput.value);
+                }
+
+                editorEl.value = newContent;
+                this.handleInput({target: editorEl});
+            }
+
+            gotoLine() {
+                const lineNumber = prompt('이동할 줄 번호를 입력하세요:');
+                if (!lineNumber) return;
+
+                const editorEl = document.getElementById('editor');
+                const lines = editorEl.value.split('\n');
+                const targetLine = parseInt(lineNumber) - 1;
+
+                if (targetLine < 0 || targetLine >= lines.length) {
+                    alert('유효하지 않은 줄 번호입니다.');
+                    return;
+                }
+
+                let position = 0;
+                for (let i = 0; i < targetLine; i++) {
+                    position += lines[i].length + 1;
+                }
+
+                editorEl.focus();
+                editorEl.setSelectionRange(position, position);
+                editorEl.scrollTop = editorEl.scrollHeight * (position / editorEl.value.length);
+            }
+
+            indent() {
+                const editorEl = document.getElementById('editor');
+                if (!editorEl) return;
+
+                const start = editorEl.selectionStart;
+                const end = editorEl.selectionEnd;
+                const tabSize = parseInt(document.getElementById('tabSize').value) || 4;
+                const tab = ' '.repeat(tabSize);
+
+                if (start === end) {
+                    editorEl.setRangeText(tab, start, end, 'end');
+                } else {
+                    const selectedText = editorEl.value.substring(start, end);
+                    const indentedText = selectedText.split('\n').map(line => tab + line).join('\n');
+                    editorEl.setRangeText(indentedText, start, end, 'end');
+                }
+
+                this.handleInput({target: editorEl});
+            }
+
+            outdent() {
+                const editorEl = document.getElementById('editor');
+                if (!editorEl) return;
+
+                const start = editorEl.selectionStart;
+                const end = editorEl.selectionEnd;
+                const tabSize = parseInt(document.getElementById('tabSize').value) || 4;
+
+                const selectedText = editorEl.value.substring(start, end);
+                const outdentedText = selectedText.split('\n').map(line => {
+                    for (let i = 0; i < tabSize; i++) {
+                        if (line.startsWith(' ')) {
+                            line = line.substring(1);
+                        } else {
+                            break;
+                        }
+                    }
+                    return line;
+                }).join('\n');
+
+                editorEl.setRangeText(outdentedText, start, end, 'end');
+                this.handleInput({target: editorEl});
+            }
+
+            duplicateLine() {
+                const editorEl = document.getElementById('editor');
+                if (!editorEl) return;
+
+                const start = editorEl.selectionStart;
+                const content = editorEl.value;
+                const lineStart = content.lastIndexOf('\n', start - 1) + 1;
+                const lineEnd = content.indexOf('\n', start);
+                const line = content.substring(lineStart, lineEnd === -1 ? content.length : lineEnd);
+
+                editorEl.setRangeText('\n' + line, lineEnd === -1 ? content.length : lineEnd, lineEnd === -1 ? content.length : lineEnd, 'end');
+                this.handleInput({target: editorEl});
+            }
+
+            deleteLine() {
+                const editorEl = document.getElementById('editor');
+                if (!editorEl) return;
+
+                const start = editorEl.selectionStart;
+                const content = editorEl.value;
+                const lineStart = content.lastIndexOf('\n', start - 1) + 1;
+                const lineEnd = content.indexOf('\n', start);
+
+                if (lineEnd === -1) {
+                    editorEl.setRangeText('', lineStart === 0 ? 0 : lineStart - 1, content.length, 'end');
+                } else {
+                    editorEl.setRangeText('', lineStart, lineEnd + 1, 'end');
+                }
+
+                this.handleInput({target: editorEl});
+            }
+
+            moveLinesUp() {
+                const editorEl = document.getElementById('editor');
+                if (!editorEl) return;
+
+                const start = editorEl.selectionStart;
+                const content = editorEl.value;
+                const lines = content.split('\n');
+                
+                let lineStart = content.lastIndexOf('\n', start - 1) + 1;
+                let currentLineIndex = content.substring(0, lineStart).split('\n').length - 1;
+
+                if (currentLineIndex === 0) return;
+
+                const temp = lines[currentLineIndex];
+                lines[currentLineIndex] = lines[currentLineIndex - 1];
+                lines[currentLineIndex - 1] = temp;
+
+                editorEl.value = lines.join('\n');
+                
+                const newPos = start - lines[currentLineIndex].length - 1;
+                editorEl.setSelectionRange(newPos, newPos);
+                
+                this.handleInput({target: editorEl});
+            }
+
+            moveLinesDown() {
+                const editorEl = document.getElementById('editor');
+                if (!editorEl) return;
+
+                const start = editorEl.selectionStart;
+                const content = editorEl.value;
+                const lines = content.split('\n');
+                
+                let lineStart = content.lastIndexOf('\n', start - 1) + 1;
+                let currentLineIndex = content.substring(0, lineStart).split('\n').length - 1;
+
+                if (currentLineIndex === lines.length - 1) return;
+
+                const temp = lines[currentLineIndex];
+                lines[currentLineIndex] = lines[currentLineIndex + 1];
+                lines[currentLineIndex + 1] = temp;
+
+                editorEl.value = lines.join('\n');
+                
+                const newPos = start + lines[currentLineIndex].length + 1;
+                editorEl.setSelectionRange(newPos, newPos);
+                
+                this.handleInput({target: editorEl});
+            }
+
+            updateCursorPosition() {
+                const editorEl = document.getElementById('editor');
+                if (!editorEl) return;
+
+                const position = editorEl.selectionStart;
+                const content = editorEl.value.substring(0, position);
+                const lines = content.split('\n');
+                const line = lines.length;
+                const col = lines[lines.length - 1].length + 1;
+
+                document.getElementById('cursorPosition').textContent = `줄 ${line}, 열 ${col}`;
+            }
+
+            updateStats() {
+                const editorEl = document.getElementById('editor');
+                if (!editorEl) return;
+
+                const content = editorEl.value;
+                const selectedText = content.substring(editorEl.selectionStart, editorEl.selectionEnd);
+
+                document.getElementById('charCount').textContent = content.length.toLocaleString();
+                document.getElementById('charNoSpace').textContent = content.replace(/\s/g, '').length.toLocaleString();
+                document.getElementById('wordCount').textContent = content.trim() ? content.trim().split(/\s+/).length.toLocaleString() : '0';
+                document.getElementById('lineCount').textContent = content.split('\n').length.toLocaleString();
+                document.getElementById('selectedChars').textContent = selectedText.length.toLocaleString();
+                document.getElementById('selection').textContent = `선택 ${selectedText.length}`;
+            }
+
+            updateStatusBar() {
+                if (this.currentFileIndex === -1) {
+                    document.getElementById('fileInfo').textContent = '파일 없음';
+                    document.getElementById('fileSize').textContent = '0 bytes';
+                } else {
+                    const file = this.files[this.currentFileIndex];
+                    document.getElementById('fileInfo').textContent = file.name;
+                    document.getElementById('fileSize').textContent = this.formatFileSize(file.size);
+                }
+                
+                this.updateCursorPosition();
+            }
+
+            formatFileSize(bytes) {
+                if (bytes < 1024) return bytes + ' bytes';
+                if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+                return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+            }
+
+            toggleSettings() {
+                event.stopPropagation();
+                const panel = document.getElementById('settingsPanel');
+                panel.classList.toggle('active');
+                document.getElementById('statsPanel').classList.remove('active');
+            }
+
+            toggleStats() {
+                event.stopPropagation();
+                const panel = document.getElementById('statsPanel');
+                panel.classList.toggle('active');
+                document.getElementById('settingsPanel').classList.remove('active');
+                if (panel.classList.contains('active')) {
+                    this.updateStats();
+                }
+            }
+
+            updateSettings() {
+                const showLineNumbers = document.getElementById('showLineNumbers').checked;
+                const tabSize = document.getElementById('tabSize').value;
+                const wordWrap = document.getElementById('wordWrap').checked;
+
+                const lineNumbers = document.getElementById('lineNumbers');
+                const editorEl = document.getElementById('editor');
+
+                if (lineNumbers) {
+                    lineNumbers.style.display = showLineNumbers ? 'block' : 'none';
+                }
+
+                if (editorEl) {
+                    editorEl.style.tabSize = tabSize;
+                    editorEl.style.whiteSpace = wordWrap ? 'pre-wrap' : 'pre';
+                }
+            }
+
+            changeTheme(theme) {
+                if (theme === 'light') {
+                    document.body.style.background = '#ffffff';
+                    document.body.style.color = '#000000';
+                    // 추가 테마 변경 로직
+                } else {
+                    document.body.style.background = '#1e1e1e';
+                    document.body.style.color = '#d4d4d4';
+                }
+            }
+
+            showContextMenu(x, y) {
+                const menu = document.getElementById('contextMenu');
+                menu.style.left = x + 'px';
+                menu.style.top = y + 'px';
+                menu.classList.add('active');
+            }
+
+            hideContextMenu() {
+                document.getElementById('contextMenu').classList.remove('active');
+            }
+
+            showNotification(message) {
+                // 간단한 알림 표시
+                const notification = document.createElement('div');
+                notification.textContent = message;
+                notification.style.cssText = `
+                    position: fixed;
+                    bottom: 60px;
+                    right: 20px;
+                    background: #0e639c;
+                    color: white;
+                    padding: 12px 20px;
+                    border-radius: 4px;
+                    z-index: 3000;
+                    animation: fadeInOut 2s ease-in-out;
+                `;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.remove();
+                }, 2000);
             }
         }
 
-        // 에디터 변경 감지
-        document.getElementById('editor').addEventListener('input', function() {
-            if (activeTabId !== null) {
-                const tab = tabs.find(t => t.id === activeTabId);
-                if (tab) {
-                    tab.content = this.value;
-                    tab.modified = tab.content !== tab.originalContent;
-                    renderTabs();
-                }
+        // 애니메이션 추가
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInOut {
+                0%, 100% { opacity: 0; transform: translateY(10px); }
+                10%, 90% { opacity: 1; transform: translateY(0); }
             }
-            updateStatusBar();
-        });
+        `;
+        document.head.appendChild(style);
 
-        // 상태바 업데이트
-        function updateStatusBar() {
-            const content = document.getElementById('editor').value;
-            const lines = content.split('\n').length;
-            const chars = content.length;
-            
-            document.getElementById('statusLines').textContent = `줄: ${lines}`;
-            document.getElementById('statusChars').textContent = `문자: ${chars}`;
-            
-            const tab = tabs.find(t => t.id === activeTabId);
-            document.getElementById('statusModified').textContent = 
-                tab && tab.modified ? '● 수정됨' : '';
-        }
-
-        // 버튼 상태 업데이트
-        function updateButtons() {
-            const hasActiveTab = activeTabId !== null;
-            document.getElementById('saveBtn').disabled = !hasActiveTab;
-            document.getElementById('closeBtn').disabled = !hasActiveTab;
-        }
-
-        // 단축키
-        document.addEventListener('keydown', (e) => {
-            // Ctrl+S / Cmd+S: 저장
-            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-                e.preventDefault();
-                saveFile();
-            }
-            // Ctrl+W / Cmd+W: 탭 닫기
-            else if ((e.ctrlKey || e.metaKey) && e.key === 'w') {
-                e.preventDefault();
-                closeCurrentTab();
-            }
-            // Ctrl+O / Cmd+O: 파일 열기
-            else if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
-                e.preventDefault();
-                openFiles();
-            }
-        });
-
-        // 초기화
-        loadRecentFiles();
-        updateButtons();
+        // 에디터 초기화
+        const editor = new TextEditor();
     </script>
 </body>
 </html>
