@@ -15,17 +15,23 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
             background: #1e1e1e;
             color: #d4d4d4;
-            height: 100vh;
+            height: 100dvh;
             width: 100vw;
             margin: 0;
             padding: 0;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
         }
 
         #app {
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            width: 100vw;
+            height: 100%;
+            width: 100%;
         }
 
         /* 툴바 */
@@ -890,7 +896,9 @@
                     content: '',
                     originalContent: '',
                     modified: false,
-                    size: 0
+                    size: 0,
+                    cursorPosition: 0,
+                    scrollTop: 0
                 };
 
                 this.files.push(fileData);
@@ -990,7 +998,9 @@
                     content: content,
                     originalContent: content,
                     modified: false,
-                    size: file.size
+                    size: file.size,
+                    cursorPosition: 0,
+                    scrollTop: 0
                 };
 
                 this.files.push(fileData);
@@ -1011,7 +1021,9 @@
                     content: content,
                     originalContent: content,
                     modified: false,
-                    size: file.size
+                    size: file.size,
+                    cursorPosition: 0,
+                    scrollTop: 0
                 };
 
                 this.files.push(fileData);
@@ -1126,6 +1138,17 @@
                     this.updateStats();
                 });
 
+                // 저장된 커서 위치와 스크롤 위치 복원
+                setTimeout(() => {
+                    editorEl.setSelectionRange(file.cursorPosition, file.cursorPosition);
+                    editorEl.scrollTop = file.scrollTop;
+                    
+                    const lineNumbers = document.getElementById('lineNumbers');
+                    if (lineNumbers) {
+                        lineNumbers.scrollTop = file.scrollTop;
+                    }
+                }, 0);
+
                 editorEl.focus();
             }
 
@@ -1165,6 +1188,9 @@
 
                 file.content = newContent;
                 file.modified = file.content !== file.originalContent;
+                
+                // 커서 위치 저장
+                file.cursorPosition = e.target.selectionStart;
 
                 this.updateLineNumbers();
                 this.renderTabs();
@@ -1183,6 +1209,15 @@
 
             switchToFile(index) {
                 if (index < 0 || index >= this.files.length) return;
+                
+                // 현재 파일의 커서 위치와 스크롤 위치 저장
+                if (this.currentFileIndex !== -1) {
+                    const editorEl = document.getElementById('editor');
+                    if (editorEl) {
+                        this.files[this.currentFileIndex].cursorPosition = editorEl.selectionStart;
+                        this.files[this.currentFileIndex].scrollTop = editorEl.scrollTop;
+                    }
+                }
                 
                 this.currentFileIndex = index;
                 this.renderUI();
