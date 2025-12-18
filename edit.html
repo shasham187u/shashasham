@@ -262,6 +262,9 @@
             border-right: 1px solid #3e3e42;
             overflow: hidden;
             min-width: 50px;
+            white-space: pre;
+            word-wrap: normal;
+            overflow-wrap: normal;
         }
 
         .editor {
@@ -518,6 +521,7 @@
         <!-- 툴바 -->
         <div class="toolbar">
             <div class="toolbar-group">
+                <button onclick="editor.newFile()" title="새 파일 (Ctrl+N)">📄 새 파일</button>
                 <button onclick="editor.openFile()" title="파일 열기 (Ctrl+O)">📁 열기</button>
                 <button onclick="editor.openMultipleFiles()" title="여러 파일 열기">📂 다중 열기</button>
                 <button onclick="editor.openFolder()" title="폴더 열기">📂 폴더</button>
@@ -744,6 +748,10 @@
                 document.addEventListener('keydown', (e) => {
                     if (e.ctrlKey || e.metaKey) {
                         switch(e.key.toLowerCase()) {
+                            case 'n':
+                                e.preventDefault();
+                                this.newFile();
+                                break;
                             case 'o':
                                 e.preventDefault();
                                 this.openFile();
@@ -859,6 +867,34 @@
                         e.returnValue = '';
                     }
                 });
+            }
+
+            newFile() {
+                const fileName = prompt('새 파일 이름을 입력하세요:', 'untitled.txt');
+                if (!fileName) return;
+
+                const fileData = {
+                    handle: null,
+                    name: fileName,
+                    content: '',
+                    originalContent: '',
+                    modified: false,
+                    size: 0
+                };
+
+                this.files.push(fileData);
+                this.undoStack.set(this.files.length - 1, []);
+                this.redoStack.set(this.files.length - 1, []);
+                
+                this.currentFileIndex = this.files.length - 1;
+                this.renderUI();
+                this.updateStatusBar();
+                
+                // 에디터에 포커스
+                setTimeout(() => {
+                    const editorEl = document.getElementById('editor');
+                    if (editorEl) editorEl.focus();
+                }, 100);
             }
 
             async openFile() {
@@ -1031,6 +1067,7 @@
                             <h2>고급 텍스트 편집기</h2>
                             <p>파일을 열어 편집을 시작하세요</p>
                             <div class="welcome-actions">
+                                <button onclick="editor.newFile()">📄 새 파일</button>
                                 <button onclick="editor.openFile()">📁 파일 열기</button>
                                 <button onclick="editor.openMultipleFiles()">📂 여러 파일 열기</button>
                                 <button onclick="editor.openFolder()">📂 폴더 열기</button>
@@ -1087,9 +1124,16 @@
                 
                 if (!editorEl || !lineNumbers) return;
                 
-                const lines = editorEl.value.split('\n').length;
-                const numbers = Array.from({length: lines}, (_, i) => i + 1).join('\n');
+                const lines = editorEl.value.split('\n');
+                const lineCount = lines.length;
+                
+                // 각 실제 줄에 대해 줄 번호를 생성 (긴 줄은 한 줄로 취급)
+                const numbers = Array.from({length: lineCount}, (_, i) => i + 1).join('\n');
                 lineNumbers.textContent = numbers;
+                
+                // 줄 번호 컨테이너의 너비를 동적으로 조정
+                const maxDigits = lineCount.toString().length;
+                lineNumbers.style.minWidth = (maxDigits * 10 + 16) + 'px';
             }
 
             handleInput(e) {
